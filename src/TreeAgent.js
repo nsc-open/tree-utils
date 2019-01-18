@@ -9,8 +9,11 @@ class TreeAgent {
     leafIndicatorPropName: 'isLeaf'
   }) {
 
+    
+    this.tree = tree
 
-    this.nodes = [] // [{ key, node, parentNode, level, path, isLeaf, deepFirstOrder, wideFirstOrder }]
+    // [{ nodeRef, parentNodeRef, level, path, isLeaf }]
+    this.nodes = this._flat(tree) // this flat data provides faster way to access the tree
     this.keyMapping = {}
   }
 
@@ -62,16 +65,12 @@ class TreeAgent {
  
   }
 
-  /**
-   * build tree from this.nodes
-   */
   getTree () {
-    // build tree from this.nodes
-    buildTree(this.nodes)
+    return this.tree
   }
 
   getNode (key) {
-    return this.nodes.find(n => n.key === key)
+    return this.nodes.find(n => this._key(n.nodeRef) === key)
   }
 
   getChildren (key, options = { format: 'flat' }) {
@@ -79,7 +78,8 @@ class TreeAgent {
   }
 
   getParent (key) {
-    return this.getNode(key).parentNode
+    const node = this.getNode(key)
+    return node.parentRef ? this.getNode(this._key(ndoe.parentRef)) : null
   }
 
   getParents (key) {
@@ -88,7 +88,7 @@ class TreeAgent {
 
   getSiblings (key) {
     const level = this.getLevel(key)
-    return this.nodes.filter(n => n.level === level && n.key !== key)
+    return this.nodes.filter(n => n.level === level && this._key(n.node) !== key)
   }
 
   /**
