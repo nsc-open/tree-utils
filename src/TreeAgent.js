@@ -1,3 +1,4 @@
+import { buildTree } from "./utils";
 
 class TreeAgent {
 
@@ -9,21 +10,26 @@ class TreeAgent {
   }) {
 
 
-    this.nodes = [] // [{ key, node, parentNode, level, isLeaf, deepFirstOrder, wideFirstOrder }]
+    this.nodes = [] // [{ key, node, parentNode, level, path, isLeaf, deepFirstOrder, wideFirstOrder }]
     this.keyMapping = {}
   }
 
   _flat () {
     const { nodes, options, _key, _isLeaf } = this
 
-    walk(tree, ({ node, parent }) => {
+    walk(tree, ({ node, parent, level, path }) => {
       this.nodes.push({
         key: _key(node),
         node,
+        parentKey: parent ? parent.key : null,
         parentNode: parent,
+        level,
+        path,
         isLeaf: options.leafIndicatorPropName in node
           ? _isLeaf(node)
-          : (!node.children || node.children.length === 0)
+          : (!node.children || node.children.length === 0),
+        deepFirstOrder: 0,
+        wideFirstOrder: 0
       })
     }, this.options)
   }
@@ -56,8 +62,13 @@ class TreeAgent {
  
   }
 
-
-  
+  /**
+   * build tree from this.nodes
+   */
+  getTree () {
+    // build tree from this.nodes
+    buildTree(this.nodes)
+  }
 
   getNode (key) {
     return this.nodes.find(n => n.key === key)
