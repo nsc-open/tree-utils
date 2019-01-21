@@ -1,4 +1,4 @@
-import { buildTree } from "./utils";
+import { walk } from './utils'
 
 class TreeAgent {
 
@@ -7,61 +7,63 @@ class TreeAgent {
     parentKeyPropName: 'parentKey',
     childrenPropName: 'children',
     leafIndicatorPropName: 'isLeaf'
-  }) {
-
-    
+  }) {    
+    this.options = options
     this.tree = tree
 
-    // [{ nodeRef, parentNodeRef, level, path, isLeaf }]
-    this.nodes = this._flat(tree) // this flat data provides faster way to access the tree
+    this.nodeMap = this._flatten(tree)  // { [key]: { node, parent, children, level, path, isLeaf } }
     this.keyMapping = {}
   }
 
-  _flat () {
-    const { nodes, options, _key, _isLeaf } = this
+  _flatten () {
+    const { options, _key, _isLeaf } = this
+    const nodeMap = {}
 
     walk(tree, ({ node, parent, level, path }) => {
-      this.nodes.push({
-        key: _key(node),
-        node,
-        parentKey: parent ? parent.key : null,
-        parentNode: parent,
-        level,
-        path,
+      const currentNode = {
+        node, level, path,
+        parent: null, children: null,
         isLeaf: options.leafIndicatorPropName in node
           ? _isLeaf(node)
-          : (!node.children || node.children.length === 0),
-        deepFirstOrder: 0,
-        wideFirstOrder: 0
-      })
-    }, this.options)
+          : (!node.children || node.children.length === 0)
+      }
+      if (parent) {
+        const parentNode = nodeMap[_key(parent)]
+        currentNode.parent = parentNode
+        parentNode.children = parentNode.children || []
+        parentNode.children.push(currentNode)  
+      }
+      nodeMap[_key(node)] = currentNode
+    }, options)
+
+    return nodeMap
   }
 
-  _node (nodeOrKey) {
-    if (typeof value === 'string') {
-      return this.nodes.find(n => n.key === value)
+  _nodeProp (node, propName /*, value */) {
+    if (arguments.length > 2) {
+      return node[propName] = arguments[2]
     } else {
-      value
+      return node[propName]
     }
   }
 
-  _isLeaf (node) {
-    return node[this.options.leafIndicatorPropName]
+  _isLeaf (node, ...args) {
+    return this._nodeProp(node, this.options.leafIndicatorPropName, ...args)
   }
 
-  _key (node) {
-    return node[this.options.keyPropsName]
+  _key (node, ...args) {
+    return this._nodeProp(node, this.options.keyPropsName, ...args)
   }
 
-  _parentKey (node) {
-    return node[this.options.parentKeyPropName]
+  _parentKey (node, ...args) {
+    return this._nodeProp(node, this.options.parentKeyPropName, ...args)
   }
 
-  _children (node) {
-    return node[this.options.childrenPropName]
+  _children (node, ...args) {
+    return this._nodeProp(node, this.options.childrenPropName, ...args)
   }
 
-  traverse (handler, options = { deepFirst: true }) {
+  traverse (handler) {
  
   }
 
@@ -70,25 +72,33 @@ class TreeAgent {
   }
 
   getNode (key) {
-    return this.nodes.find(n => this._key(n.nodeRef) === key)
+    const node = this.nodeMap[key]
+    if (!node) {
+      console.warn(`'${key} node does not exists`)
+    }
+    return node
   }
 
-  getChildren (key, options = { format: 'flat' }) {
-    const node = this.getNode(key)
+  getChildren (key) {
+    return Object.values(this.nodeMap).filter(n => n.path.includes(key))
   }
 
   getParent (key) {
     const node = this.getNode(key)
-    return node.parentRef ? this.getNode(this._key(ndoe.parentRef)) : null
+    if (!node) {
+      return null
+    }
+    return node.parent || null
   }
 
   getParents (key) {
-
+    const node = this.getNode(key)
+    return node.path.map(key => this.getNode(key))
   }
 
   getSiblings (key) {
     const level = this.getLevel(key)
-    return this.nodes.filter(n => n.level === level && this._key(n.node) !== key)
+    return Object.values(this.nodeMap).filter(n => n.level === level && this._key(n.node) !== key)
   }
 
   /**
@@ -120,31 +130,106 @@ class TreeAgent {
   }
 
   isChildOf (childKey, parentKey, options = { directChild: false }) {
-    
-  }
-
-  isParentOf (parentKey, childKey, options = { directParent: false }) {
-    
-  }
-
-  addNode (parentKey, node, index) {
-
-  }
-
-  removeNode (key, options = { cascade: true }) {
-    const node = this.getNode(key)
-
-    if (cascade) {
-
+    if (options.directChild) {
+      const childNode = this.getNode(childKey)
+      return this._key(childNode.parent) === parentKey
     } else {
-
+      const parentNode = this.getNode(parentKey)
+      return parentNode.path.includes(childKey)
     }
   }
 
-  setChildren (parentKey, children) {
-    const node = this.getNode(parentKey)
-    
+  isParentOf (parentKey, childKey, options = { directParent: false }) {
+    return this.isChildOf(childKey, parentKey, { directChild: options.directParent })
   }
-  
+
+  addNode (parentKey, node, index /* TODO */) {
+    const { _key, _parentKey, _children, _isLeaf, options } = this
+    const { keyPropsName, leafIndicatorPropName } = options
+
+    const parent = this.getNode(parentKey)
+    if (!parent) {
+      return false
+    }
+
+    const key = _key(node)
+    if (!key) {
+      console.warn(`cannot find valid key from node.${keyPropsName}`)
+      return false
+    }
+
+    // set parent key
+    _parentKey(node, parentKey)
+
+    const newNode = {
+      node, parent,
+      level: parent.level + 1,
+      path: [...parent.path, key],
+      children: null,
+      isLeaf: leafIndicatorPropName in node
+        ? _isLeaf(node)
+        : (!node.children || node.children.length === 0)
+    }
+
+    // set children of parent in both nodeMap and tree
+    if (parent.children) {
+      // TODO with index
+      parent.children.push(newNode)
+      _children(parent.node).push(node)
+    } else {
+      parent.children = [newNode]
+      _children(node, [node])
+    }
+  }
+
+  removeNode (key) {
+    const node = this.getNode(key)
+    if (!node) {
+      return
+    }
+
+    const { _key, _children } = this
+    const cascade = true // TODO make this as an option
+
+    if (cascade) {
+      this.getChildren(key).forEach(child => {
+        this.nodeMap[_key(child.node)] = null
+      })
+      node.children = null
+      node.isLeaf = true
+      _children(node, null)
+    } else {
+      // TODO
+    }
+  }
+
+  addChildren (parentKey, children) {
+    children.forEach(child => this.addNode(parentKey, child))
+  }
+
+  removeChildren (parentKey) {
+    const parent = this.getNode(parentKey)
+    if (!parent || !parent.children || parent.children.length === 0) {
+      return
+    }
+
+    parent.children.forEach(child => this.removeNode(this._key(child.node)))
+  }
+
+  setChildren (parentKey, children) {
+    const parent = this.getNode(parentKey)
+    if (!parent) {
+      return
+    }
+
+    this.removeChildren(parentKey)
+    this.addChildren(parentKey, children)
+  }
+
+  // set tree node value { cascadeDirection: 'up' | 'down' }
+  // up: 向上传播的值
+  // down: 向下传播的值
 
 }
+
+export default TreeAgent
