@@ -6,7 +6,8 @@ class TreeAgent {
     keyPropsName: 'key',
     parentKeyPropName: 'parentKey',
     childrenPropName: 'children',
-    leafIndicatorPropName: 'isLeaf'
+    leafIndicatorPropName: 'isLeaf',
+    cascadeFields: []
   }) {    
     this.options = options
     this.tree = tree
@@ -15,7 +16,7 @@ class TreeAgent {
     this.keyMapping = {}
   }
 
-  _flatten () {
+  _flatten (tree) {
     const { options, _key, _isLeaf } = this
     const nodeMap = {}
 
@@ -63,9 +64,7 @@ class TreeAgent {
     return this._nodeProp(node, this.options.childrenPropName, ...args)
   }
 
-  traverse (handler) {
- 
-  }
+
 
   getTree () {
     return this.tree
@@ -143,43 +142,135 @@ class TreeAgent {
     return this.isChildOf(childKey, parentKey, { directChild: options.directParent })
   }
 
-  addNode (parentKey, node, index /* TODO */) {
-    const { _key, _parentKey, _children, _isLeaf, options } = this
-    const { keyPropsName, leafIndicatorPropName } = options
+  
 
-    const parent = this.getNode(parentKey)
-    if (!parent) {
-      return false
+
+  traverse (handler) {
+    Object.values(this.nodeMap).forEach(n => handler(n))
+  }
+
+  // set tree node value { cascadeDirection: 'up' | 'down' }
+  // up: 向上传播的值
+  // down: 向下传播的值
+
+  // check, halfCheck: every children => check，some children => half
+  // expand: 
+
+  some (key, fn) {
+
+  }
+
+  every (key, fn) {
+
+  }
+
+  /**
+   * 
+   * @param {String} key 
+   * @param {String} fieldName 
+   * @param {Any} fieldValue 
+   * @param {Boolean} cascade
+   * 
+   */
+  setFieldValue (key, fieldName, fieldValue, options = { cascade: false, beforeSet: null }) {
+    const node = this.getNode(key)
+    if (!node) {
+      return
     }
 
+    const { cascade, beforeSet } = options
+    node.node[fieldName] = fieldValue
+
+    if (cascade) {
+      // set value for children
+      this.getChildren(key).forEach(child => {
+        // ignore if beforeSet returns false
+        if (beforeSet && beforeSet(child) === false) {
+          return
+        }
+
+        child.node[fieldName] = fieldValue
+      })
+
+      // set value for parents
+      this.getParents(key).forEach(parent => {
+        if (beforeSet && beforeSet(parent) === false) {
+          return
+        }
+
+        
+      })
+    }
+    
+  }
+
+  getFieldValue (key, fieldName, cascade = false) {
+    const node = this.getNode(key)
+    if (!node) {
+      return
+    }
+
+    const value = node.node[fieldName]
+
+    if (!cascade) {
+      return value
+    } else {
+      return { value, indeterminate: false } 
+    }
+  }
+
+
+  /* operations need to be done by these provided agent functions */
+  /* don't modify tree or node directly, it will leads undetermined result */
+
+  addNode (parentKey, node, index /* TODO */) {
+    const { _key, _parentKey, _children, options } = this
+    const { keyPropsName } = options
+
+    const parent = this.getNode(parentKey)
     const key = _key(node)
+
     if (!key) {
       console.warn(`cannot find valid key from node.${keyPropsName}`)
       return false
     }
-
-    // set parent key
+    
+    // make sure it has parentKey set
     _parentKey(node, parentKey)
 
-    const newNode = {
-      node, parent,
-      level: parent.level + 1,
-      path: [...parent.path, key],
-      children: null,
-      isLeaf: leafIndicatorPropName in node
-        ? _isLeaf(node)
-        : (!node.children || node.children.length === 0)
+
+    if (!parent) {
+      // add to top level
+      
+    } else {
+
     }
 
-    // set children of parent in both nodeMap and tree
-    if (parent.children) {
-      // TODO with index
-      parent.children.push(newNode)
-      _children(parent.node).push(node)
-    } else {
-      parent.children = [newNode]
-      _children(node, [node])
-    }
+    
+
+    const subNodeMap = this._flatten([node])
+    Object.values(subNodeMap).forEach(n => {
+      // connect node with parent
+      if (_key(n.node) === key) {
+        n.parent = parent
+        
+        // set children of parent in both nodeMap and tree
+        if (parent.children) {
+          parent.children.push(n)
+          _children(parent.node).push(n.node)
+        } else {
+          parent.children = [n]
+          _children(parent.node, [n.node])
+        }
+      }
+
+      // modify level and path
+      n.level += parent.level + 1
+      n.path = [...parent.path, ...n.path]
+
+      // add to the main nodeMap
+      this.nodeMap(_key(n.node)) = n
+    })
   }
 
   removeNode (key) {
@@ -189,18 +280,31 @@ class TreeAgent {
     }
 
     const { _key, _children } = this
-    const cascade = true // TODO make this as an option
 
-    if (cascade) {
-      this.getChildren(key).forEach(child => {
-        this.nodeMap[_key(child.node)] = null
-      })
-      node.children = null
-      node.isLeaf = true
-      _children(node, null)
-    } else {
-      // TODO
+    this.getChildren(key).forEach(child => {
+      this.nodeMap[_key(child.node)] = null
+    })
+
+    node.children = null
+    node.isLeaf = true
+    _children(node, null)
+
+    return node
+  }
+
+  /**
+   * move target node down to a parent node
+   * @param {String} key 
+   * @param {String} parentKey optional
+   */
+  moveNode (key, parentKey) {
+    const node = this.getNode(key)
+    if (!node) {
+      return
     }
+
+    this.removeNode(key)
+    this.addNode(parentKey, node.node)
   }
 
   addChildren (parentKey, children) {
@@ -224,12 +328,7 @@ class TreeAgent {
 
     this.removeChildren(parentKey)
     this.addChildren(parentKey, children)
-  }
-
-  // set tree node value { cascadeDirection: 'up' | 'down' }
-  // up: 向上传播的值
-  // down: 向下传播的值
-
+  } 
 }
 
 export default TreeAgent
