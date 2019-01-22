@@ -149,19 +149,15 @@ class TreeAgent {
     Object.values(this.nodeMap).forEach(n => handler(n))
   }
 
-  // set tree node value { cascadeDirection: 'up' | 'down' }
-  // up: 向上传播的值
-  // down: 向下传播的值
-
-  // check, halfCheck: every children => check，some children => half
-  // expand: 
-
+  /* cascade value related query and setting operations */
+  
   some (key, fn) {
-
+    return !!this.getChildren(key).find(fn)
   }
 
   every (key, fn) {
-
+    const children = this.getChildren(key)
+    return children.filter(fn).length === children.length
   }
 
   /**
@@ -198,7 +194,7 @@ class TreeAgent {
           return
         }
 
-        
+
       })
     }
     
