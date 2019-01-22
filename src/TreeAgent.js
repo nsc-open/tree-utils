@@ -16,6 +16,8 @@ class TreeAgent {
     this.keyMapping = {}
   }
 
+  /* internal functions */
+
   _flatten (tree) {
     const { options, _key, _isLeaf } = this
     const nodeMap = {}
@@ -64,7 +66,7 @@ class TreeAgent {
     return this._nodeProp(node, this.options.childrenPropName, ...args)
   }
 
-
+  /* getter functions */
 
   getTree () {
     return this.tree
@@ -79,7 +81,11 @@ class TreeAgent {
   }
 
   getChildren (key) {
-    return Object.values(this.nodeMap).filter(n => n.path.includes(key))
+    if (key) {
+      return Object.values(this.nodeMap).filter(n => n.path.includes(key))
+    } else {
+      return Object.values(this.nodeMap)
+    }
   }
 
   getParent (key) {
@@ -120,6 +126,8 @@ class TreeAgent {
     return this.getNode(key).level
   }
 
+  /* test functions */
+
   isTop (key) {
     return this.getLevel(key) === 0
   }
@@ -142,22 +150,20 @@ class TreeAgent {
     return this.isChildOf(childKey, parentKey, { directChild: options.directParent })
   }
 
-  
-
+  /* traverse function */
 
   traverse (handler) {
-    Object.values(this.nodeMap).forEach(n => handler(n))
+    Object.values(this.nodeMap).forEach(handler)
   }
 
   /* cascade value related query and setting operations */
-  
+
   some (key, fn) {
-    return !!this.getChildren(key).find(fn)
+    return this.getChildren(key).some(fn)
   }
 
   every (key, fn) {
-    const children = this.getChildren(key)
-    return children.filter(fn).length === children.length
+    return this.getChildren(key).every(fn)
   }
 
   /**
@@ -166,7 +172,6 @@ class TreeAgent {
    * @param {String} fieldName 
    * @param {Any} fieldValue 
    * @param {Boolean} cascade
-   * 
    */
   setFieldValue (key, fieldName, fieldValue, options = { cascade: false, beforeSet: null }) {
     const node = this.getNode(key)
@@ -174,10 +179,19 @@ class TreeAgent {
       return
     }
 
-    const { cascade, beforeSet } = options
-    node.node[fieldName] = fieldValue
+    const _setCascadeField = (node, indeterminate) => {
+      node.cascadeFields = node.cascadeFields || {}
+      node.cascadeFields[fieldName] = { value: fieldValue, indeterminate }
+    }
 
+    const { _key } = this
+    const { cascade, beforeSet } = options
+
+    node.node[fieldName] = fieldValue
+    
     if (cascade) {
+      _setCascadeField(node, true)
+
       // set value for children
       this.getChildren(key).forEach(child => {
         // ignore if beforeSet returns false
@@ -186,6 +200,7 @@ class TreeAgent {
         }
 
         child.node[fieldName] = fieldValue
+        _setCascadeField(child, true)
       })
 
       // set value for parents
@@ -194,10 +209,19 @@ class TreeAgent {
           return
         }
 
+        // forEach parents from bottom to top
+        // if all direct children have the same value and non-indeterminate,
+        // then set parent as non-indeterminate value
+        this.getParents(key).reverse().forEach(parent => {
+          const indeterminate = !parent.children.every(child => {
+            const { value, indeterminate } = this.getFieldValue(_key(child.node), fieldName, true)
+            return value === fieldValue && !indeterminate
+          })
 
+          _setCascadeField(parent, indeterminate)
+        })
       })
     }
-    
   }
 
   getFieldValue (key, fieldName, cascade = false) {
@@ -211,7 +235,8 @@ class TreeAgent {
     if (!cascade) {
       return value
     } else {
-      return { value, indeterminate: false } 
+      node.cascadeFields = node.cascadeFields || {}
+      return node.cascadeFields[fieldName]
     }
   }
 
