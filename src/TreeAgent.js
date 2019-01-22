@@ -290,7 +290,7 @@ class TreeAgent {
       n.path = [...parent.path, ...n.path]
 
       // add to the main nodeMap
-      this.nodeMap(_key(n.node)) = n
+      this.nodeMap[_key(n.node)] = n
     })
   }
 
