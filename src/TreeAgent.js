@@ -4,7 +4,7 @@ class TreeAgent {
 
   constructor (tree, options = {
     keyPropsName: 'key',
-    parentKeyPropName: 'parentKey',
+    parentKeyPropName: 'parent',
     childrenPropName: 'children',
     leafIndicatorPropName: 'isLeaf',
     cascadeFields: []
@@ -50,19 +50,19 @@ class TreeAgent {
     }
   }
 
-  _isLeaf (node, ...args) {
+  _isLeaf = (node, ...args) => {
     return this._nodeProp(node, this.options.leafIndicatorPropName, ...args)
   }
 
-  _key (node, ...args) {
+  _key = (node, ...args) => {
     return this._nodeProp(node, this.options.keyPropsName, ...args)
   }
 
-  _parentKey (node, ...args) {
+  _parentKey = (node, ...args) => {
     return this._nodeProp(node, this.options.parentKeyPropName, ...args)
   }
 
-  _children (node, ...args) {
+  _children = (node, ...args) => {
     return this._nodeProp(node, this.options.childrenPropName, ...args)
   }
 
@@ -77,7 +77,7 @@ class TreeAgent {
     if (!node) {
       console.warn(`'${key} node does not exists`)
     }
-    return node
+    return node || null
   }
 
   getChildren (key) {
@@ -98,12 +98,12 @@ class TreeAgent {
 
   getParents (key) {
     const node = this.getNode(key)
-    return node.path.map(key => this.getNode(key))
+    return node ? node.path.map(key => this.getNode(key)) : []
   }
 
   getSiblings (key) {
     const level = this.getLevel(key)
-    return Object.values(this.nodeMap).filter(n => n.level === level && this._key(n.node) !== key)
+    return level === null ? [] : Object.values(this.nodeMap).filter(n => n.level === level && this._key(n.node) !== key)
   }
 
   /**
@@ -123,7 +123,8 @@ class TreeAgent {
    * @param {String} key optional
    */
   getLevel (key) {
-    return this.getNode(key).level
+    const node = this.getNode(key)
+    return node ? node.level : null
   }
 
   /* test functions */
@@ -137,12 +138,15 @@ class TreeAgent {
   }
 
   isChildOf (childKey, parentKey, options = { directChild: false }) {
+    const childNode = this.getNode(childKey)
+    if (!childNode) {
+      return false
+    }
+
     if (options.directChild) {
-      const childNode = this.getNode(childKey)
-      return this._key(childNode.parent) === parentKey
+      return childNode.parent ? this._key(childNode.parent.node) === parentKey : false
     } else {
-      const parentNode = this.getNode(parentKey)
-      return parentNode.path.includes(childKey)
+      return childNode.path.includes(parentKey)
     }
   }
 
@@ -153,6 +157,7 @@ class TreeAgent {
   /* traverse function */
 
   traverse (handler) {
+    // the order would like: ["0", "1", "2", "0-0", "0-1", "0-1-0", "0-1-1", "0-1-1-0", "0-2", "1-0", "1-1", "1-1-0", "1-1-1", "1-1-2"]
     Object.values(this.nodeMap).forEach(handler)
   }
 

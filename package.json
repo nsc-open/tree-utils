@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "mocha --require @babel/register ./test/unit",
+    "cover": "nyc --reporter=html --reporter=text mocha --require @babel/register ./test/unit",
     "build:es5": "babel src --out-dir es5"
   },
   "repository": {
@@ -26,6 +27,8 @@
     "@babel/preset-stage-1": "^7.0.0",
     "@babel/register": "^7.0.0",
     "chai": "^4.2.0",
-    "mocha": "^5.2.0"
+    "istanbul": "^0.4.5",
+    "mocha": "^5.2.0",
+    "nyc": "^13.3.0"
   }
 }
