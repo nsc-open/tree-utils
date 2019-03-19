@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "mocha ./test/unit",
+    "test": "mocha --require @babel/register ./test/unit",
     "build:es5": "babel src --out-dir es5"
   },
   "repository": {
@@ -24,6 +24,7 @@
     "@babel/plugin-proposal-object-rest-spread": "^7.3.0",
     "@babel/preset-env": "^7.3.0",
     "@babel/preset-stage-1": "^7.0.0",
+    "@babel/register": "^7.0.0",
     "chai": "^4.2.0",
     "mocha": "^5.2.0"
   }
