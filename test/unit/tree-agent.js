@@ -1,4 +1,4 @@
-const should = require('chai').should()
+const expect = require('chai').expect
 const TreeUtils = require('../../src/index')
 
 describe('TreeAgent', function () {

@@ -1,4 +1,4 @@
-const should = require('chai').should()
+const expect = require('chai').expect
 const { walk, buildTree } = require('../../src/index')
 const {
   flatTreeData, treeData,
@@ -9,12 +9,12 @@ describe('utils', function () {
   describe('buildTree()', function () {
     it('should be able to build tree without any options', function () {
       const tree = buildTree(flatTreeData)
-      tree.should.deep.equal(treeData)
+      expect(tree).to.deep.equal(treeData)
     })
 
     it('should be able to build tree with options', function () {
       const tree = buildTree(flatTreeData2, { keyPropName: '_key', parentPropName: '_parent', childrenPropName: '_children' })
-      tree.should.deep.equal(treeData2)
+      expect(tree).deep.equal(treeData2)
     })
   })
 
@@ -24,15 +24,15 @@ describe('utils', function () {
       let n = 0
       walk(tree, ctx => {
         const level = (ctx.node.key.includes('-') ? ctx.node.key.split('-').length : 1) - 1
-        ctx.level.should.equal(level)
+        expect(ctx.level).to.equal(level)
         
         if (ctx.parent) {
-          ctx.parent.key.should.equal(ctx.node.parent)
+          expect(ctx.parent.key).to.equal(ctx.node.parent)
         }
         n++
       })
 
-      n.should.equal(flatTreeData.length)
+      expect(n).to.equal(flatTreeData.length)
     })
 
     it('should be able to walk tree with options', function () {
@@ -40,15 +40,15 @@ describe('utils', function () {
       let n = 0
       walk(tree, ctx => {
         const level = (ctx.node.key.includes('-') ? ctx.node.key.split('-').length : 1) - 1
-        ctx.level.should.equal(level)
+        expect(ctx.level).to.equal(level)
         
         if (ctx.parent) {
-          ctx.parent.key.should.equal(ctx.node.parent)
+          expect(ctx.parent.key).to.equal(ctx.node.parent)
         }
         n++
       }, { childrenPropName: '_children' })
 
-      n.should.equal(flatTreeData.length)
+      expect(n).to.equal(flatTreeData.length)
     })
   })
 })
