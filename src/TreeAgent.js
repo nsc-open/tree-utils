@@ -7,13 +7,12 @@ class TreeAgent {
     parentKeyPropName: 'parent',
     childrenPropName: 'children',
     leafIndicatorPropName: 'isLeaf',
-    cascadeFields: []
+    // cascadeFields: []
   }) {    
     this.options = options
     this.tree = tree
 
     this.nodeMap = this._flatten(tree)  // { [key]: { node, parent, children, level, path, isLeaf } }
-    this.keyMapping = {}
   }
 
   /* internal functions */
@@ -178,7 +177,7 @@ class TreeAgent {
    * @param {Any} fieldValue 
    * @param {Boolean} cascade
    */
-  setFieldValue (key, fieldName, fieldValue, options = { cascade: false, beforeSet: null }) {
+  /* setFieldValue (key, fieldName, fieldValue, options = { cascade: false, beforeSet: null }) {
     const node = this.getNode(key)
     if (!node) {
       return
@@ -243,38 +242,49 @@ class TreeAgent {
       node.cascadeFields = node.cascadeFields || {}
       return node.cascadeFields[fieldName]
     }
-  }
+  } */
 
 
   /* operations need to be done by these provided agent functions */
   /* don't modify tree or node directly, it will leads undetermined result */
 
-  addNode (parentKey, node, index /* TODO */) {
+  addNode (parentKey, node/*, index TODO */) {
     const { _key, _parentKey, _children, options } = this
     const { keyPropsName } = options
-
-    const parent = this.getNode(parentKey)
     const key = _key(node)
-
     if (!key) {
       console.warn(`cannot find valid key from node.${keyPropsName}`)
+      return false
+    }
+
+    const parent = this.getNode(parentKey)
+    if (parentKey && !parent) {
+      console.warn(`cannot find parent of key: ${parentKey}`)
       return false
     }
     
     // make sure it has parentKey set
     _parentKey(node, parentKey)
 
-
+    // modify tree
     if (!parent) {
-      // add to top level
-      
+      this.tree.push(node) // add to top level
     } else {
-
+      const children = _children(parent.node)
+      if (!children) {
+        _children(parent.node, [node])
+      } else {
+        children.push(node)
+      }
     }
 
-    
+    // update nodeMap
+    // recalculate nodeMap
+    this.nodeMap = this._flatten(this.tree) // this way is easy but less efficiency
 
-    const subNodeMap = this._flatten([node])
+    /*
+    // [{ node, parent, children, level, path, isLeaf }]
+    const subNodeMap = this._flatten([node]) 
     Object.values(subNodeMap).forEach(n => {
       // connect node with parent
       if (_key(n.node) === key) {
@@ -297,6 +307,7 @@ class TreeAgent {
       // add to the main nodeMap
       this.nodeMap[_key(n.node)] = n
     })
+    */
   }
 
   removeNode (key) {

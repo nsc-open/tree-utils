@@ -221,9 +221,18 @@ describe('TreeAgent', function () {
     })
   })
 
-  describe('', function () {
-    it('', function () {
-      
+  describe('addNode()', function () {
+    const treeAgent = new TreeAgent([])
+    it('add node for an empty tree', function () {
+      const newNode = {
+        key: '0',
+        name: 'Node 0',
+        children: [{
+          key: '0-1',
+          name: 'Node 0-1'
+        }]
+      }
+      treeAgent.addNode(null, newNode)
     })
   })
 
