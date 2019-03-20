@@ -289,6 +289,9 @@ describe('TreeAgent', function () {
   })
 
   describe('moveNode()', function () {
+    const tree = buildTree(flatTreeData)
+    const treeAgent = new TreeAgent(tree)
+
     it('should not able to move 0 under 0-1-1-0', function () {
       const key = '0'
       const parentKey = '0-1-1-0'
@@ -316,9 +319,93 @@ describe('TreeAgent', function () {
     })
   })
 
-  describe('', function () {
-    it('', function () {
+  describe('addChildren()', function () {
+    const tree = buildTree(flatTreeData)
+    const treeAgent = new TreeAgent(tree)
 
+    it('not able to add children for wrong key', function () {
+      treeAgent.addChildren('wrong-key', { key: '3', parent: null })
+      expect(treeAgent.getNode('3')).to.be.null
+    })
+
+    it('add children to 0-1-0', function () {
+      const children = [{
+        key: '0-1-0-0',
+        parent: '0-1-0'
+      }, {
+        key: '0-1-0-1',
+        parent: '0-1-0',
+        children: [{
+          key: '0-1-0-1-0',
+          parent: '0-1-0-1'
+        }]
+      }]
+      treeAgent.addChildren('0-1-0', children)
+      expect(treeAgent.getLevel()).to.equal(4)
+      expect(treeAgent.getNode('0-1-0-1-0')).to.be.exist
+      expect(treeAgent.isChildOf('0-1-0-1-0', '0-1-0')).to.be.true
+    })
+  })
+
+  describe('removeChildren()', function () {
+    const tree = buildTree(flatTreeData)
+    const treeAgent = new TreeAgent(tree)
+
+    it('no effect to remove children for a node that has no children', function () {
+      expect(treeAgent.removeChildren('2')).to.be.undefined
+    })
+    
+    it('remove children of node 0', function () {
+      treeAgent.removeChildren('0')
+      expect(treeAgent.getNode('0-1')).to.be.null
+      expect(treeAgent.getNode('0-1-1-0')).to.be.null
+      expect(treeAgent.getChildren('0').length).to.equal(0)
+      expect(treeAgent.getLevel()).to.equal(2)
+    })
+  })
+
+  describe('setChildren()', function () {
+    const tree = buildTree(flatTreeData)
+    const treeAgent = new TreeAgent(tree)
+
+    it('not able to set children of node that not exist', function () {
+      expect(treeAgent.setChildren('wrong-key', [])).to.be.false
+    })
+
+    it('set children as []', function () {
+      treeAgent.setChildren('0', [])
+      expect(treeAgent.getLevel()).to.equal(2)
+      expect(treeAgent.getNode('0-1')).to.be.null
+    })
+
+    it('set children of node that already has children', function () {
+      const children = [{
+        key: '0-1-0-0',
+        // parent: '0-1-0'
+      }, {
+        key: '0-1-0-1',
+        parent: '0-1-0',
+        children: [{
+          key: '0-1-0-1-0',
+          parent: '0-1-0-1'
+        }]
+      }]
+      treeAgent.setChildren('0', children)
+      expect(treeAgent.getLevel()).to.equal(2)
+      expect(treeAgent.getNode('0-1')).to.be.null
+      expect(treeAgent.getNode('0-1-0-0')).to.be.exist
+      expect(treeAgent.isChildOf('0-1-0-0', '0')).to.be.true
+      expect(treeAgent.isChildOf('0-1-0-1-0', '0-1-0-1')).to.be.true
+    })
+
+    it('set children of node that has no children', function () {
+      const children = [{
+        key: '2-1',
+        // parent: '2'
+      }]
+      treeAgent.setChildren('2', children)
+      expect(treeAgent.getLevel('2-1')).to.equal(1)
+      expect(treeAgent.isChildOf('2-1', '2')).to.be.true
     })
   })
 })

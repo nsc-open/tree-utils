@@ -106,7 +106,7 @@ class TreeAgent {
    * @param {String} key optional
    */
   getLeaves (key) {
-    
+    // TODO
   }
 
   /**
@@ -325,26 +325,43 @@ class TreeAgent {
       return false
     }
     
+    this._preventSync = true
     const removedNode = this.removeNode(key)
     this.addNode(parentKey, removedNode.node)
+    this._preventSync = false
     this.sync()
   }
 
   addChildren (parentKey, children) {
+    const parent = this.getNode(parentKey)
+    if (!parent) {
+      console.warn(`target node ${parentKey} does not exist`)
+      return false
+    }
+
+    children = Array.isArray(children) ? children : [children]
+    this._preventSync = true
     children.forEach(child => this.addNode(parentKey, child))
+    this._preventSync = false
+    this.sync()
   }
 
   removeChildren (parentKey) {
     const parent = this.getNode(parentKey)
     if (!parent) {
+      console.warn(`target node ${parentKey} does not exist`)
       return false
     }
 
-    if (!parent.node.children || parent.node.children.length === 0) {
+    const { _children, _key } = this
+    if (!_children(parent.node) || _children(parent.node).length === 0) {
       return
     }
 
-    parent.children.forEach(child => this.removeNode(this._key(child.node)))
+    this._preventSync = true
+    _children(parent.node).forEach(childNode => this.removeNode(_key(childNode)))
+    this._preventSync = false
+    this.sync()
   }
 
   setChildren (parentKey, children) {
@@ -354,8 +371,12 @@ class TreeAgent {
       return false
     }
 
+    children = Array.isArray(children) ? children : [children]
+    this._preventSync = true
     this.removeChildren(parentKey)
     this.addChildren(parentKey, children)
+    this._preventSync = false
+    this.sync()
   } 
 }
 
