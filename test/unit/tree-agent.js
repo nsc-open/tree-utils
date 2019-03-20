@@ -122,12 +122,6 @@ describe('TreeAgent', function () {
     })
   })
 
-  describe('getLeaves()', function () {
-    it('TODO', function () {
-      expect(true).to.equal(false)
-    })
-  })
-
   describe('isTop()', function () {
     it('should work', function () {
       expect(treeAgent.isTop("0")).to.equal(true)
@@ -135,12 +129,6 @@ describe('TreeAgent', function () {
       expect(treeAgent.isTop("0-1")).to.equal(false)
       expect(treeAgent.isTop("0-1-1-0")).to.equal(false)
       expect(treeAgent.isTop("wrong-key")).to.equal(false)
-    })
-  })
-
-  describe('isLeaf()', function () {
-    it('TODO', function () {
-      expect(true).to.equal(false)
     })
   })
 
@@ -279,7 +267,7 @@ describe('TreeAgent', function () {
 
     it('remove node with wrong key', function () {
       const node = treeAgent.removeNode('wrong key')
-      expect(node).to.be.null
+      expect(node).to.be.false
     })
 
     it('remove leaf node 0-1-1-0', function () {
@@ -304,14 +292,15 @@ describe('TreeAgent', function () {
     it('should not able to move 0 under 0-1-1-0', function () {
       const key = '0'
       const parentKey = '0-1-1-0'
-      const movedNode = treeAgent.moveNode(key, parentKey)
-      expect(movedNode).to.be.null
+      const result = treeAgent.moveNode(key, parentKey)
+      expect(result).to.be.false
     })
 
     it('move 1 under 0-1-1-0', function () {
       const key = '1'
       const parentKey = '0-1-1-0'
-      const movedNode = treeAgent.moveNode(key, parentKey)
+      treeAgent.moveNode(key, parentKey)
+      const movedNode = treeAgent.getNode(key)
       expect(movedNode).to.be.exist
       expect(treeAgent.getLevel('1')).to.equal(4)
       expect(treeAgent.getLevel()).to.equal(6)

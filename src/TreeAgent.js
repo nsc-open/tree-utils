@@ -5,29 +5,26 @@ class TreeAgent {
   constructor (tree, options = {
     keyPropsName: 'key',
     parentKeyPropName: 'parent',
-    childrenPropName: 'children',
-    leafIndicatorPropName: 'isLeaf',
+    childrenPropName: 'children'
     // cascadeFields: []
   }) {    
     this.options = options
     this.tree = tree
 
-    this.nodeMap = this._flatten(tree)  // { [key]: { node, parent, children, level, path, isLeaf } }
+    this.nodeMap = this._flatten(tree)  // { [key]: { node, parent, children, level, path } }
+    this._preventSync = false
   }
 
   /* internal functions */
 
   _flatten (tree) {
-    const { options, _key, _isLeaf } = this
+    const { options, _key } = this
     const nodeMap = {}
 
     walk(tree, ({ node, parent, level, path }) => {
       const currentNode = {
         node, level, path,
-        parent: null, children: null,
-        isLeaf: options.leafIndicatorPropName in node
-          ? _isLeaf(node)
-          : (!node.children || node.children.length === 0)
+        parent: null, children: null
       }
       if (parent) {
         const parentNode = nodeMap[_key(parent)]
@@ -49,10 +46,6 @@ class TreeAgent {
     }
   }
 
-  _isLeaf = (node, ...args) => {
-    return this._nodeProp(node, this.options.leafIndicatorPropName, ...args)
-  }
-
   _key = (node, ...args) => {
     return this._nodeProp(node, this.options.keyPropsName, ...args)
   }
@@ -66,7 +59,9 @@ class TreeAgent {
   }
 
   sync () {
-    this.nodeMap = this._flatten(this.tree)
+    if (!this._preventSync) {
+      this.nodeMap = this._flatten(this.tree)  
+    }
   }
 
   /* getter functions */
@@ -111,11 +106,7 @@ class TreeAgent {
    * @param {String} key optional
    */
   getLeaves (key) {
-    if (key) {
-      return this.getChildren(key).filter(n => n.isLeaf)
-    } else {
-      return this.nodes.filter(n => n.isLeaf)
-    }
+    
   }
 
   /**
@@ -136,10 +127,6 @@ class TreeAgent {
 
   isTop (key) {
     return this.getLevel(key) === 0
-  }
-
-  isLeaf (key) {
-    return this.getNode(key).isLeaf
   }
 
   isChildOf (childKey, parentKey, options = { directChild: false }) {
@@ -294,7 +281,7 @@ class TreeAgent {
   removeNode (key) {
     const node = this.getNode(key)
     if (!node) {
-      return null
+      return false
     }
 
     const { _key, _children } = this
@@ -322,51 +309,25 @@ class TreeAgent {
   moveNode (key, parentKey) {
     if (this.isChildOf(parentKey, key)) {
       console.warn('cannot move a node into its children node')
-      return null
+      return false
     }
 
     const moveToTop = !parentKey
     const node = this.getNode(key)
     if (!node) {
       console.warn(`target node ${key} does not exist`)
-      return null
+      return false
     }
 
     const parentNode = moveToTop ? null : this.getNode(parentKey)
     if (!moveToTop && !parentNode) {
       console.warn(`parent node ${parentKey} does not exist`)
-      return null
+      return false
     }
-
-    const { _children, _key, _parentKey } = this
-    const { parent } = node
-
-    // remove from the tree
-    if (parent) {
-      _children(
-        parent.node,
-        _children(parent.node).filter(childNode => _key(childNode) !== key)
-      )
-    } else {
-      this.tree = this.tree.filter(topNode => _key(topNode) !== key)
-    }
-
-    // update parentKey of direct children to its parentKey
-    ;(_children(node.node) || []).forEach(childNode => _parentKey(childNode, _parentKey(node.node)))
-
-    // add to the tree and set parentKey
-    if (moveToTop) {
-      _parentKey(node.node, null)
-      this.tree.push(node.node)
-    } else {
-      const children = _children(parentNode.node) || []
-      children.push(node.node)
-      _parentKey(node.node, parentKey)
-      _children(parentNode.node, children)
-    }
-
+    
+    const removedNode = this.removeNode(key)
+    this.addNode(parentKey, removedNode.node)
     this.sync()
-    return this.getNode(key)
   }
 
   addChildren (parentKey, children) {
@@ -375,7 +336,11 @@ class TreeAgent {
 
   removeChildren (parentKey) {
     const parent = this.getNode(parentKey)
-    if (!parent || !parent.children || parent.children.length === 0) {
+    if (!parent) {
+      return false
+    }
+
+    if (!parent.node.children || parent.node.children.length === 0) {
       return
     }
 
@@ -385,7 +350,8 @@ class TreeAgent {
   setChildren (parentKey, children) {
     const parent = this.getNode(parentKey)
     if (!parent) {
-      return
+      console.warn(`target node ${parentKey} does not exist`)
+      return false
     }
 
     this.removeChildren(parentKey)
