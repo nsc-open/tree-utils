@@ -2,12 +2,12 @@ const ENV = process.env['ENV']
 const presets = ENV === 'test' ? [
   [
     "@babel/preset-env",
-    { targets: "> 0.25%, not dead" }
+    { targets: { esmodules: true } }
   ]
 ] : [
   [
     "@babel/preset-env",
-    { targets: { esmodules: true } }
+    { targets: "cover 99.5%" }
   ]
 ]
 
