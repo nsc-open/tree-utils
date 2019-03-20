@@ -116,6 +116,10 @@ describe('TreeAgent', function () {
       expect(treeAgent.getLevel("0-1")).to.equal(1)
       expect(treeAgent.getLevel("1-1-2")).to.equal(2)
     })
+
+    it('should return tree level for passing no key', function () {
+      expect(treeAgent.getLevel()).to.equal(3)
+    })
   })
 
   describe('getLeaves()', function () {
@@ -233,10 +237,95 @@ describe('TreeAgent', function () {
         }]
       }
       treeAgent.addNode(null, newNode)
+      expect(treeAgent.getNode('0')).to.be.exist
+      expect(treeAgent.getNode('0').level).to.equal(0)
+      expect(treeAgent.getNode('0-1')).to.be.exist
+      expect(treeAgent.getNode('0-1').level).to.equal(1)
+      expect(treeAgent.isChildOf('0-1', '0')).to.be.true
+    })
+
+    it('add another top level node', function () {
+      const newNode = {
+        key: '1',
+        name: 'Node 1'
+      }
+      treeAgent.addNode(null, newNode)
+      expect(treeAgent.getNode('1')).to.be.exist
+      expect(treeAgent.getNode('1').level).to.equal(0)
+    })
+
+    it('add a child under 0-1 node', function () {
+      const newNode = {
+        key: '0-1-0',
+        name: 'Node 0-1-0',
+        children: [{
+          key: '0-1-0-0',
+          name: 'Node 0-1-0-0'
+        }]
+      }
+      treeAgent.addNode('0-1', newNode)
+      expect(treeAgent.getNode('0-1-0')).to.be.exist
+      expect(treeAgent.getNode('0-1-0').level).to.equal(2)
+      expect(treeAgent.getNode('0-1-0-0')).to.be.exist
+      expect(treeAgent.getNode('0-1-0-0').level).to.equal(3)
+      expect(treeAgent.isChildOf('0-1-0', '0-1')).to.be.true
+      expect(treeAgent.isChildOf('0-1-0-0', '0-1')).to.be.true
     })
   })
 
+  describe('removeNode()', function () {
+    const tree = buildTree(flatTreeData)
+    const treeAgent = new TreeAgent(tree)
 
+    it('remove node with wrong key', function () {
+      const node = treeAgent.removeNode('wrong key')
+      expect(node).to.be.null
+    })
+
+    it('remove leaf node 0-1-1-0', function () {
+      const key = '0-1-1-0'
+      const node = treeAgent.removeNode(key)
+      expect(node.node.key).to.equal(key)
+      expect(treeAgent.getNode(key)).to.be.null
+      expect(treeAgent.isChildOf(key, '0-1-1')).to.be.false
+    })
+
+    it('remove node 0-1 with children', function () {
+      const key = '0-1'
+      const node = treeAgent.removeNode(key)
+      expect(node.node.key).to.equal(key)
+      expect(treeAgent.getNode(key)).to.be.null
+      expect(treeAgent.getNode('0-1-1-0')).to.be.null
+      expect(treeAgent.getLevel()).to.equal(2)
+    })
+  })
+
+  describe('moveNode()', function () {
+    it('should not able to move 0 under 0-1-1-0', function () {
+      const key = '0'
+      const parentKey = '0-1-1-0'
+      const movedNode = treeAgent.moveNode(key, parentKey)
+      expect(movedNode).to.be.null
+    })
+
+    it('move 1 under 0-1-1-0', function () {
+      const key = '1'
+      const parentKey = '0-1-1-0'
+      const movedNode = treeAgent.moveNode(key, parentKey)
+      expect(movedNode).to.be.exist
+      expect(treeAgent.getLevel('1')).to.equal(4)
+      expect(treeAgent.getLevel()).to.equal(6)
+      expect(treeAgent.isChildOf('1-1-2', '0-1-1-0')).to.be.true
+    })
+
+    it('move 0-1-1-0 to the top level', function () {
+      const key = '0-1-1-0'
+      const movedNode = treeAgent.moveNode(key)
+      expect(treeAgent.getLevel(key)).to.equal(0)
+      expect(treeAgent.getLevel()).to.equal(3)
+      expect(treeAgent.isChildOf(key, '0-1-1')).to.be.false
+    })
+  })
 
   describe('', function () {
     it('', function () {

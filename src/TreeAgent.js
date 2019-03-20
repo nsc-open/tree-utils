@@ -65,6 +65,10 @@ class TreeAgent {
     return this._nodeProp(node, this.options.childrenPropName, ...args)
   }
 
+  sync () {
+    this.nodeMap = this._flatten(this.tree)
+  }
+
   /* getter functions */
 
   getTree () {
@@ -73,9 +77,6 @@ class TreeAgent {
 
   getNode (key) {
     const node = this.nodeMap[key]
-    if (!node) {
-      console.warn(`'${key} node does not exists`)
-    }
     return node || null
   }
 
@@ -122,8 +123,13 @@ class TreeAgent {
    * @param {String} key optional
    */
   getLevel (key) {
-    const node = this.getNode(key)
-    return node ? node.level : null
+    if (arguments.length === 0) {
+      const levels = Object.values(this.nodeMap).map(n => n.level)
+      return Math.max(...levels) 
+    } else {
+      const node = this.getNode(key)
+      return node ? node.level : null
+    }
   }
 
   /* test functions */
@@ -278,70 +284,89 @@ class TreeAgent {
       }
     }
 
-    // update nodeMap
     // recalculate nodeMap
-    this.nodeMap = this._flatten(this.tree) // this way is easy but less efficiency
-
-    /*
-    // [{ node, parent, children, level, path, isLeaf }]
-    const subNodeMap = this._flatten([node]) 
-    Object.values(subNodeMap).forEach(n => {
-      // connect node with parent
-      if (_key(n.node) === key) {
-        n.parent = parent
-        
-        // set children of parent in both nodeMap and tree
-        if (parent.children) {
-          parent.children.push(n)
-          _children(parent.node).push(n.node)
-        } else {
-          parent.children = [n]
-          _children(parent.node, [n.node])
-        }
-      }
-
-      // modify level and path
-      n.level += parent.level + 1
-      n.path = [...parent.path, ...n.path]
-
-      // add to the main nodeMap
-      this.nodeMap[_key(n.node)] = n
-    })
-    */
+    this.sync()
   }
 
+  /**
+   * remove node with children
+   */
   removeNode (key) {
     const node = this.getNode(key)
     if (!node) {
-      return
+      return null
     }
 
     const { _key, _children } = this
+    const { parent } = node
 
-    this.getChildren(key).forEach(child => {
-      this.nodeMap[_key(child.node)] = null
-    })
+    if (parent) {
+      _children(
+        parent.node,
+        _children(parent.node).filter(childNode => _key(childNode) !== key)
+      )
+    } else {
+      this.tree = this.tree.filter(topNode => _key(topNode) !== key)
+    }
 
-    node.children = null
-    node.isLeaf = true
-    _children(node, null)
-
+    this.sync()
     return node
   }
 
   /**
-   * move target node down to a parent node
+   * move target node down to a parent node or the top level of the tree
    * @param {String} key 
    * @param {String} parentKey optional
+   * @return moved node
    */
   moveNode (key, parentKey) {
-    const node = this.getNode(key)
-    if (!node) {
-      return
+    if (this.isChildOf(parentKey, key)) {
+      console.warn('cannot move a node into its children node')
+      return null
     }
 
-    this.removeNode(key)
-    this.addNode(parentKey, node.node)
+    const moveToTop = !parentKey
+    const node = this.getNode(key)
+    if (!node) {
+      console.warn(`target node ${key} does not exist`)
+      return null
+    }
+
+    const parentNode = moveToTop ? null : this.getNode(parentKey)
+    if (!moveToTop && !parentNode) {
+      console.warn(`parent node ${parentKey} does not exist`)
+      return null
+    }
+
+    const { _children, _key, _parentKey } = this
+    const { parent } = node
+
+    // remove from the tree
+    if (parent) {
+      _children(
+        parent.node,
+        _children(parent.node).filter(childNode => _key(childNode) !== key)
+      )
+    } else {
+      this.tree = this.tree.filter(topNode => _key(topNode) !== key)
+    }
+
+    // update parentKey of direct children to its parentKey
+    ;(_children(node.node) || []).forEach(childNode => _parentKey(childNode, _parentKey(node.node)))
+
+    // add to the tree and set parentKey
+    if (moveToTop) {
+      _parentKey(node.node, null)
+      this.tree.push(node.node)
+    } else {
+      const children = _children(parentNode.node) || []
+      children.push(node.node)
+      _parentKey(node.node, parentKey)
+      _children(parentNode.node, children)
+    }
+
+    this.sync()
+    return this.getNode(key)
   }
 
   addChildren (parentKey, children) {
