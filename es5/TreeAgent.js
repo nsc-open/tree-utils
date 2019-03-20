@@ -1,24 +1,47 @@
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _utils = require("./utils");
+
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
-import { walk } from './utils';
-
 class TreeAgent {
-  constructor(tree, options = {
-    keyPropsName: 'key',
-    parentKeyPropName: 'parent',
-    childrenPropName: 'children' // cascadeFields: []
+  constructor(tree) {
+    var _this = this;
 
-  }) {
-    _defineProperty(this, "_key", (node, ...args) => {
-      return this._nodeProp(node, this.options.keyPropsName, ...args);
+    let options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {
+      keyPropsName: 'key',
+      parentKeyPropName: 'parent',
+      childrenPropName: 'children' // cascadeFields: []
+
+    };
+
+    _defineProperty(this, "_key", function (node) {
+      for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key2 = 1; _key2 < _len; _key2++) {
+        args[_key2 - 1] = arguments[_key2];
+      }
+
+      return _this._nodeProp(node, _this.options.keyPropsName, ...args);
     });
 
-    _defineProperty(this, "_parentKey", (node, ...args) => {
-      return this._nodeProp(node, this.options.parentKeyPropName, ...args);
+    _defineProperty(this, "_parentKey", function (node) {
+      for (var _len2 = arguments.length, args = new Array(_len2 > 1 ? _len2 - 1 : 0), _key3 = 1; _key3 < _len2; _key3++) {
+        args[_key3 - 1] = arguments[_key3];
+      }
+
+      return _this._nodeProp(node, _this.options.parentKeyPropName, ...args);
     });
 
-    _defineProperty(this, "_children", (node, ...args) => {
-      return this._nodeProp(node, this.options.childrenPropName, ...args);
+    _defineProperty(this, "_children", function (node) {
+      for (var _len3 = arguments.length, args = new Array(_len3 > 1 ? _len3 - 1 : 0), _key4 = 1; _key4 < _len3; _key4++) {
+        args[_key4 - 1] = arguments[_key4];
+      }
+
+      return _this._nodeProp(node, _this.options.childrenPropName, ...args);
     });
 
     this.options = options;
@@ -31,17 +54,14 @@ class TreeAgent {
 
 
   _flatten(tree) {
-    const {
-      options,
-      _key
-    } = this;
+    const options = this.options,
+          _key = this._key;
     const nodeMap = {};
-    walk(tree, ({
-      node,
-      parent,
-      level,
-      path
-    }) => {
+    (0, _utils.walk)(tree, (_ref) => {
+      let node = _ref.node,
+          parent = _ref.parent,
+          level = _ref.level,
+          path = _ref.path;
       const currentNode = {
         node,
         level,
@@ -147,9 +167,10 @@ class TreeAgent {
     return this.getLevel(key) === 0;
   }
 
-  isChildOf(childKey, parentKey, options = {
-    directChild: false
-  }) {
+  isChildOf(childKey, parentKey) {
+    let options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {
+      directChild: false
+    };
     const childNode = this.getNode(childKey);
 
     if (!childNode) {
@@ -163,9 +184,10 @@ class TreeAgent {
     }
   }
 
-  isParentOf(parentKey, childKey, options = {
-    directParent: false
-  }) {
+  isParentOf(parentKey, childKey) {
+    let options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {
+      directParent: false
+    };
     return this.isChildOf(childKey, parentKey, {
       directChild: options.directParent
     });
@@ -259,15 +281,11 @@ class TreeAgent {
   addNode(parentKey, node
   /*, index TODO */
   ) {
-    const {
-      _key,
-      _parentKey,
-      _children,
-      options
-    } = this;
-    const {
-      keyPropsName
-    } = options;
+    const _key = this._key,
+          _parentKey = this._parentKey,
+          _children = this._children,
+          options = this.options;
+    const keyPropsName = options.keyPropsName;
 
     const key = _key(node);
 
@@ -314,13 +332,9 @@ class TreeAgent {
       return false;
     }
 
-    const {
-      _key,
-      _children
-    } = this;
-    const {
-      parent
-    } = node;
+    const _key = this._key,
+          _children = this._children;
+    const parent = node.parent;
 
     if (parent) {
       _children(parent.node, _children(parent.node).filter(childNode => _key(childNode) !== key));
@@ -390,10 +404,8 @@ class TreeAgent {
       return false;
     }
 
-    const {
-      _children,
-      _key
-    } = this;
+    const _children = this._children,
+          _key = this._key;
 
     if (!_children(parent.node) || _children(parent.node).length === 0) {
       return;
@@ -425,4 +437,5 @@ class TreeAgent {
 
 }
 
-export default TreeAgent;
+var _default = TreeAgent;
+exports.default = _default;

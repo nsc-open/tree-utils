@@ -1,23 +1,28 @@
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.buildTree = exports.walk = void 0;
+
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { if (i % 2) { var source = arguments[i] != null ? arguments[i] : {}; var ownKeys = Object.keys(source); if (typeof Object.getOwnPropertySymbols === 'function') { ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) { return Object.getOwnPropertyDescriptor(source, sym).enumerable; })); } ownKeys.forEach(function (key) { _defineProperty(target, key, source[key]); }); } else { Object.defineProperties(target, Object.getOwnPropertyDescriptors(arguments[i])); } } return target; }
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
-export const walk = (tree, callback, options) => {
-  const {
-    childrenPropName
-  } = _objectSpread({
+const walk = (tree, callback, options) => {
+  const _childrenPropName = _objectSpread({
     childrenPropName: 'children'
-  }, options || {});
+  }, options || {}),
+        childrenPropName = _childrenPropName.childrenPropName;
 
   let loopContext = {};
 
-  const loop = ({
-    tree,
-    parent,
-    level,
-    path,
-    callback
-  }) => {
+  const loop = (_ref) => {
+    let tree = _ref.tree,
+        parent = _ref.parent,
+        level = _ref.level,
+        path = _ref.path,
+        callback = _ref.callback;
     tree.forEach(item => {
       const skipChildren = callback({
         node: item,
@@ -48,7 +53,13 @@ export const walk = (tree, callback, options) => {
   });
   loopContext = null;
 };
-export const buildTree = (flatData = [], options) => {
+
+exports.walk = walk;
+
+const buildTree = function buildTree() {
+  let flatData = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+  let options = arguments.length > 1 ? arguments[1] : undefined;
+
   const opts = _objectSpread({
     keyPropName: 'key',
     parentPropName: 'parent',
@@ -79,3 +90,5 @@ export const buildTree = (flatData = [], options) => {
     [CHILDREN_KEY]: process(d[KEY])
   }));
 };
+
+exports.buildTree = buildTree;
