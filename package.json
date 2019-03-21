@@ -6,7 +6,8 @@
   "scripts": {
     "test": "cross-env ENV=test mocha --require @babel/register ./test/unit",
     "cover": "nyc --reporter=html --reporter=text npm run test",
-    "build:es5": "cross-env ENV=es5 babel src --out-dir es5"
+    "build:es5": "cross-env ENV=es5 babel src --out-dir es5",
+    "build": "npm run build:es5 && webpack"
   },
   "repository": {
     "type": "git",
