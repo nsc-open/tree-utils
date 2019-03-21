@@ -120,6 +120,14 @@ function () {
         this.nodeMap = this._flatten(this.tree);
       }
     }
+  }, {
+    key: "syncWrapper",
+    value: function syncWrapper(func) {
+      this._preventSync = true;
+      func();
+      this._preventSync = false;
+      this.sync();
+    }
     /* getter functions */
 
   }, {
@@ -409,6 +417,8 @@ function () {
   }, {
     key: "moveNode",
     value: function moveNode(key, parentKey) {
+      var _this4 = this;
+
       if (this.isChildOf(parentKey, key)) {
         console.warn('cannot move a node into its children node');
         return false;
@@ -429,16 +439,16 @@ function () {
         return false;
       }
 
-      this._preventSync = true;
-      var removedNode = this.removeNode(key);
-      this.addNode(parentKey, removedNode.node);
-      this._preventSync = false;
-      this.sync();
+      this.syncWrapper(function () {
+        var removedNode = _this4.removeNode(key);
+
+        _this4.addNode(parentKey, removedNode.node);
+      });
     }
   }, {
     key: "addChildren",
     value: function addChildren(parentKey, children) {
-      var _this4 = this;
+      var _this5 = this;
 
       var parent = this.getNode(parentKey);
 
@@ -448,17 +458,16 @@ function () {
       }
 
       children = Array.isArray(children) ? children : [children];
-      this._preventSync = true;
-      children.forEach(function (child) {
-        return _this4.addNode(parentKey, child);
+      this.syncWrapper(function () {
+        children.forEach(function (child) {
+          return _this5.addNode(parentKey, child);
+        });
       });
-      this._preventSync = false;
-      this.sync();
     }
   }, {
     key: "removeChildren",
     value: function removeChildren(parentKey) {
-      var _this5 = this;
+      var _this6 = this;
 
       var parent = this.getNode(parentKey);
 
@@ -474,18 +483,17 @@ function () {
         return;
       }
 
-      this._preventSync = true;
-
-      _children(parent.node).forEach(function (childNode) {
-        return _this5.removeNode(_key(childNode));
+      this.syncWrapper(function () {
+        _children(parent.node).forEach(function (childNode) {
+          return _this6.removeNode(_key(childNode));
+        });
       });
-
-      this._preventSync = false;
-      this.sync();
     }
   }, {
     key: "setChildren",
     value: function setChildren(parentKey, children) {
+      var _this7 = this;
+
       var parent = this.getNode(parentKey);
 
       if (!parent) {
@@ -494,11 +502,11 @@ function () {
       }
 
       children = Array.isArray(children) ? children : [children];
-      this._preventSync = true;
-      this.removeChildren(parentKey);
-      this.addChildren(parentKey, children);
-      this._preventSync = false;
-      this.sync();
+      this.syncWrapper(function () {
+        _this7.removeChildren(parentKey);
+
+        _this7.addChildren(parentKey, children);
+      });
     }
   }]);
 

@@ -64,6 +64,13 @@ class TreeAgent {
     }
   }
 
+  syncWrapper (func) {
+    this._preventSync = true
+    func()
+    this._preventSync = false
+    this.sync()
+  }
+
   /* getter functions */
 
   getTree () {
@@ -325,11 +332,10 @@ class TreeAgent {
       return false
     }
     
-    this._preventSync = true
-    const removedNode = this.removeNode(key)
-    this.addNode(parentKey, removedNode.node)
-    this._preventSync = false
-    this.sync()
+    this.syncWrapper(() => {
+      const removedNode = this.removeNode(key)
+      this.addNode(parentKey, removedNode.node)
+    })
   }
 
   addChildren (parentKey, children) {
@@ -340,10 +346,9 @@ class TreeAgent {
     }
 
     children = Array.isArray(children) ? children : [children]
-    this._preventSync = true
-    children.forEach(child => this.addNode(parentKey, child))
-    this._preventSync = false
-    this.sync()
+    this.syncWrapper(() => {
+      children.forEach(child => this.addNode(parentKey, child))
+    })
   }
 
   removeChildren (parentKey) {
@@ -358,10 +363,9 @@ class TreeAgent {
       return
     }
 
-    this._preventSync = true
-    _children(parent.node).forEach(childNode => this.removeNode(_key(childNode)))
-    this._preventSync = false
-    this.sync()
+    this.syncWrapper(() => {
+      _children(parent.node).forEach(childNode => this.removeNode(_key(childNode)))
+    })
   }
 
   setChildren (parentKey, children) {
@@ -372,11 +376,10 @@ class TreeAgent {
     }
 
     children = Array.isArray(children) ? children : [children]
-    this._preventSync = true
-    this.removeChildren(parentKey)
-    this.addChildren(parentKey, children)
-    this._preventSync = false
-    this.sync()
+    this.syncWrapper(() => {
+      this.removeChildren(parentKey)
+      this.addChildren(parentKey, children)
+    })
   } 
 }
 
