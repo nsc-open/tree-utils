@@ -1,6 +1,6 @@
 {
   "name": "tree-utils",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "",
   "main": "es5/index.js",
   "scripts": {
@@ -14,7 +14,8 @@
   },
   "files": [
     "src/**/*",
-    "es5/**/*"
+    "es5/**/*",
+    "dist/**/*"
   ],
   "author": "",
   "license": "ISC",
@@ -30,6 +31,7 @@
     "@babel/preset-env": "^7.3.0",
     "@babel/preset-stage-1": "^7.0.0",
     "@babel/register": "^7.0.0",
+    "babel-loader": "^8.0.5",
     "chai": "^4.2.0",
     "cross-env": "^5.2.0",
     "istanbul": "^0.4.5",
