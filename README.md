@@ -10,7 +10,7 @@ const flatData = [
   { key: '0-1-0', parent: '0-1' },
   { key: '1', parent: null }
 ]
-const tree = buildTree(flatData, options)
+const tree = buildTree(flatData)
 ```
 
 The tree will be build as:
@@ -45,9 +45,9 @@ const flatData = [
   { _k: '1', _p: null }
 ]
 const options = {
-  keyPropName: '_k',
-  parentPropName: '_p',
-  childrenPropName: '_c'
+  keyPropName: '_k',      // default value is 'key'
+  parentPropName: '_p',   // default value is 'parent'
+  childrenPropName: '_c'  // default value is 'children'
 }
 const tree = buildTree(flatData, options)
 ```

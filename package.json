@@ -1,6 +1,6 @@
 {
   "name": "tree-utils",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "",
   "main": "es5/index.js",
   "scripts": {
@@ -19,10 +19,17 @@
     "dist/**/*"
   ],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/nsc-open/tree-utils/issues"
   },
+  "keywords": [
+    "tree",
+    "walk",
+    "buildTree",
+    "utils",
+    "traverse"
+  ],
   "homepage": "https://github.com/nsc-open/tree-utils#readme",
   "devDependencies": {
     "@babel/cli": "^7.2.3",
