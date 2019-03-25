@@ -47,7 +47,7 @@ var walk = function walk(tree, callback, options) {
           tree: item[childrenPropName],
           parent: item,
           level: level + 1,
-          path: [].concat(_toConsumableArray(path), [item[keyPropsName]]),
+          path: [].concat(_toConsumableArray(path), [item[keyPropName]]),
           callback: callback
         });
       }

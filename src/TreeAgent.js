@@ -3,7 +3,7 @@ import { walk } from './utils'
 class TreeAgent {
 
   constructor (tree, options = {
-    keyPropsName: 'key',
+    keyPropName: 'key',
     parentKeyPropName: 'parent',
     childrenPropName: 'children'
     // cascadeFields: []
@@ -47,7 +47,7 @@ class TreeAgent {
   }
 
   _key = (node, ...args) => {
-    return this._nodeProp(node, this.options.keyPropsName, ...args)
+    return this._nodeProp(node, this.options.keyPropName, ...args)
   }
 
   _parentKey = (node, ...args) => {
@@ -250,10 +250,10 @@ class TreeAgent {
 
   addNode (parentKey, node/*, index TODO */) {
     const { _key, _parentKey, _children, options } = this
-    const { keyPropsName } = options
+    const { keyPropName } = options
     const key = _key(node)
     if (!key) {
-      console.warn(`cannot find valid key from node.${keyPropsName}`)
+      console.warn(`cannot find valid key from node.${keyPropName}`)
       return false
     }
 
