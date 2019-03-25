@@ -18,12 +18,12 @@ function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { if
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 var walk = function walk(tree, callback, options) {
-  var _keyPropsName$childre = _objectSpread({
-    keyPropsName: 'key',
+  var _keyPropName$children = _objectSpread({
+    keyPropName: 'key',
     childrenPropName: 'children'
   }, options || {}),
-      childrenPropName = _keyPropsName$childre.childrenPropName,
-      keyPropsName = _keyPropsName$childre.keyPropsName;
+      childrenPropName = _keyPropName$children.childrenPropName,
+      keyPropName = _keyPropName$children.keyPropName;
 
   var loopContext = {};
 

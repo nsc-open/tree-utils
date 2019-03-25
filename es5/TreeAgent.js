@@ -30,7 +30,7 @@ function () {
     var _this = this;
 
     var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {
-      keyPropsName: 'key',
+      keyPropName: 'key',
       parentKeyPropName: 'parent',
       childrenPropName: 'children' // cascadeFields: []
 
@@ -43,7 +43,7 @@ function () {
         args[_key2 - 1] = arguments[_key2];
       }
 
-      return _this._nodeProp.apply(_this, [node, _this.options.keyPropsName].concat(args));
+      return _this._nodeProp.apply(_this, [node, _this.options.keyPropName].concat(args));
     });
 
     _defineProperty(this, "_parentKey", function (node) {
@@ -342,12 +342,12 @@ function () {
           _parentKey = this._parentKey,
           _children = this._children,
           options = this.options;
-      var keyPropsName = options.keyPropsName;
+      var keyPropName = options.keyPropName;
 
       var key = _key(node);
 
       if (!key) {
-        console.warn("cannot find valid key from node.".concat(keyPropsName));
+        console.warn("cannot find valid key from node.".concat(keyPropName));
         return false;
       }
 
