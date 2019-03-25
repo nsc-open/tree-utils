@@ -32,7 +32,7 @@ class TreeAgent {
         parentNode.children = parentNode.children || []
         parentNode.children.push(currentNode)  
       }
-      nodeMap[_key(node)] = currentNode
+      nodeMap[_key(node)] = currentNode // node key should be unqiue in the whole tree
     }, options)
 
     return nodeMap
