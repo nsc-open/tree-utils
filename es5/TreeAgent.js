@@ -98,7 +98,7 @@ function () {
           parentNode.children.push(currentNode);
         }
 
-        nodeMap[_key(node)] = currentNode;
+        nodeMap[_key(node)] = currentNode; // node key should be unqiue in the whole tree
       }, options);
       return nodeMap;
     }
@@ -278,31 +278,31 @@ function () {
       if (!node) {
         return
       }
-        const _setCascadeField = (node, indeterminate) => {
+       const _setCascadeField = (node, indeterminate) => {
         node.cascadeFields = node.cascadeFields || {}
         node.cascadeFields[fieldName] = { value: fieldValue, indeterminate }
       }
-        const { _key } = this
+       const { _key } = this
       const { cascade, beforeSet } = options
-        node.node[fieldName] = fieldValue
+       node.node[fieldName] = fieldValue
       
       if (cascade) {
         _setCascadeField(node, true)
-          // set value for children
+         // set value for children
         this.getChildren(key).forEach(child => {
           // ignore if beforeSet returns false
           if (beforeSet && beforeSet(child) === false) {
             return
           }
-            child.node[fieldName] = fieldValue
+           child.node[fieldName] = fieldValue
           _setCascadeField(child, true)
         })
-          // set value for parents
+         // set value for parents
         this.getParents(key).forEach(parent => {
           if (beforeSet && beforeSet(parent) === false) {
             return
           }
-            // forEach parents from bottom to top
+           // forEach parents from bottom to top
           // if all direct children have the same value and non-indeterminate,
           // then set parent as non-indeterminate value
           this.getParents(key).reverse().forEach(parent => {
@@ -310,18 +310,18 @@ function () {
               const { value, indeterminate } = this.getFieldValue(_key(child.node), fieldName, true)
               return value === fieldValue && !indeterminate
             })
-              _setCascadeField(parent, indeterminate)
+             _setCascadeField(parent, indeterminate)
           })
         })
       }
     }
-      getFieldValue (key, fieldName, cascade = false) {
+     getFieldValue (key, fieldName, cascade = false) {
       const node = this.getNode(key)
       if (!node) {
         return
       }
-        const value = node.node[fieldName]
-        if (!cascade) {
+       const value = node.node[fieldName]
+       if (!cascade) {
         return value
       } else {
         node.cascadeFields = node.cascadeFields || {}

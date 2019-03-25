@@ -13,15 +13,17 @@ function _iterableToArray(iter) { if (Symbol.iterator in Object(iter) || Object.
 
 function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
 
-function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { if (i % 2) { var source = arguments[i] != null ? arguments[i] : {}; var ownKeys = Object.keys(source); if (typeof Object.getOwnPropertySymbols === 'function') { ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) { return Object.getOwnPropertyDescriptor(source, sym).enumerable; })); } ownKeys.forEach(function (key) { _defineProperty(target, key, source[key]); }); } else { Object.defineProperties(target, Object.getOwnPropertyDescriptors(arguments[i])); } } return target; }
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; var ownKeys = Object.keys(source); if (typeof Object.getOwnPropertySymbols === 'function') { ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) { return Object.getOwnPropertyDescriptor(source, sym).enumerable; })); } ownKeys.forEach(function (key) { _defineProperty(target, key, source[key]); }); } return target; }
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 var walk = function walk(tree, callback, options) {
-  var _childrenPropName = _objectSpread({
+  var _keyPropsName$childre = _objectSpread({
+    keyPropsName: 'key',
     childrenPropName: 'children'
   }, options || {}),
-      childrenPropName = _childrenPropName.childrenPropName;
+      childrenPropName = _keyPropsName$childre.childrenPropName,
+      keyPropsName = _keyPropsName$childre.keyPropsName;
 
   var loopContext = {};
 
@@ -45,7 +47,7 @@ var walk = function walk(tree, callback, options) {
           tree: item[childrenPropName],
           parent: item,
           level: level + 1,
-          path: [].concat(_toConsumableArray(path), [item.key]),
+          path: [].concat(_toConsumableArray(path), [item[keyPropsName]]),
           callback: callback
         });
       }

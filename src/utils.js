@@ -1,5 +1,6 @@
 export const walk = (tree, callback, options) => {
-  const { childrenPropName } = {
+  const { childrenPropName, keyPropsName } = {
+    keyPropsName: 'key',
     childrenPropName: 'children',
     ...(options || {})
   }
@@ -19,7 +20,8 @@ export const walk = (tree, callback, options) => {
           tree: item[childrenPropName],
           parent: item,
           level: level + 1,
-          path: [...path, item.key],callback
+          path: [...path, item[keyPropsName]],
+          callback
         })
       }
     })
