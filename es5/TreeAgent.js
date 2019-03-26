@@ -137,9 +137,15 @@ function () {
     }
   }, {
     key: "getNode",
-    value: function getNode(key) {
-      var node = this.nodeMap[key];
-      return node || null;
+    value: function getNode(value) {
+      if (typeof value === 'string') {
+        var node = this.nodeMap[value];
+        return node || null;
+      } else if (typeof value === 'function') {
+        return Object.values(this.nodeMap).find(value);
+      } else {
+        return null;
+      }
     }
   }, {
     key: "getChildren",
