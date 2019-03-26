@@ -1,6 +1,6 @@
 {
   "name": "tree-utils",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "",
   "main": "es5/index.js",
   "scripts": {
