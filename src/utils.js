@@ -66,3 +66,7 @@ export const buildTree = (
     .filter(d => !d[PARENT_KEY])
     .map(d => Object.assign(Object.create(null), d, { [CHILDREN_KEY]: process(d[KEY]) }))
 }
+
+export const mergeTrees = (trees = [], options) => {
+  // TODO
+}
