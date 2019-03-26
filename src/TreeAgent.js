@@ -78,13 +78,11 @@ class TreeAgent {
   }
 
   getNode (value) {
-    if (typeof value === 'string') {
-      const node = this.nodeMap[value]
-      return node || null
-    } else if (typeof value === 'function') {
+    if (typeof value === 'function') {
       return Object.values(this.nodeMap).find(value)
     } else {
-      return null
+      const node = this.nodeMap[value]
+      return node || null
     }
   }
 
