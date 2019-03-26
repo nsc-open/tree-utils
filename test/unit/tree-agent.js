@@ -34,6 +34,11 @@ describe('TreeAgent', function () {
       expect(node.children).to.have.lengthOf(tree[0].children[1].children[1].children.length)
       expect(node.path).to.deep.equal(['0', '0-1'])
     })
+
+    it('accepts an callback as parameter', function () {
+      const node = treeAgent.getNode(node => node.node.name === 'Node 0-1-1-0')
+      expect(node.node.key).to.equal('0-1-1-0')
+    })
   })
 
   describe('getChildren()', function () {
