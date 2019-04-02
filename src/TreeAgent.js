@@ -4,7 +4,7 @@ class TreeAgent {
 
   constructor (tree, options = {
     keyPropName: 'key',
-    parentKeyPropName: 'parent',
+    parentPropName: 'parent',
     childrenPropName: 'children'
     // cascadeFields: []
   }) {    
@@ -51,7 +51,7 @@ class TreeAgent {
   }
 
   _parentKey = (node, ...args) => {
-    return this._nodeProp(node, this.options.parentKeyPropName, ...args)
+    return this._nodeProp(node, this.options.parentPropName, ...args)
   }
 
   _children = (node, ...args) => {
