@@ -31,7 +31,7 @@ function () {
 
     var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {
       keyPropName: 'key',
-      parentKeyPropName: 'parent',
+      parentPropName: 'parent',
       childrenPropName: 'children' // cascadeFields: []
 
     };
@@ -51,7 +51,7 @@ function () {
         args[_key3 - 1] = arguments[_key3];
       }
 
-      return _this._nodeProp.apply(_this, [node, _this.options.parentKeyPropName].concat(args));
+      return _this._nodeProp.apply(_this, [node, _this.options.parentPropName].concat(args));
     });
 
     _defineProperty(this, "_children", function (node) {
@@ -138,13 +138,11 @@ function () {
   }, {
     key: "getNode",
     value: function getNode(value) {
-      if (typeof value === 'string') {
-        var node = this.nodeMap[value];
-        return node || null;
-      } else if (typeof value === 'function') {
+      if (typeof value === 'function') {
         return Object.values(this.nodeMap).find(value);
       } else {
-        return null;
+        var node = this.nodeMap[value];
+        return node || null;
       }
     }
   }, {
