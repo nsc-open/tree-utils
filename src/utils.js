@@ -64,7 +64,7 @@ export const buildTree = (
   }
 
   return flatData
-    .filter(d => isRoot(d, PARENT_KEY))
+    .filter(d => opts.isRoot(d, PARENT_KEY))
     .map(d => Object.assign(Object.create(null), d, { [CHILDREN_KEY]: process(d[KEY]) }))
 }
 
