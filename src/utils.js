@@ -45,7 +45,7 @@ export const buildTree = (
     keyPropName: 'key',
     parentPropName: 'parent',
     childrenPropName: 'children',
-    isRoot: opts.isRoot || ((d, PARENT_KEY) => !d[PARENT_KEY]),
+    isRoot: options.isRoot || ((d, PARENT_KEY) => !d[PARENT_KEY]),
     ...(options || {})
   }
   const KEY = opts.keyPropName
