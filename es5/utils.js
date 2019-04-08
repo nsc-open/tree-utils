@@ -73,7 +73,10 @@ var buildTree = function buildTree() {
   var opts = _objectSpread({
     keyPropName: 'key',
     parentPropName: 'parent',
-    childrenPropName: 'children'
+    childrenPropName: 'children',
+    isRoot: options && options.isRoot ? options.isRoot : function (d, PARENT_KEY) {
+      return !d[PARENT_KEY];
+    }
   }, options || {});
 
   var KEY = opts.keyPropName;
@@ -95,7 +98,7 @@ var buildTree = function buildTree() {
   };
 
   return flatData.filter(function (d) {
-    return !d[PARENT_KEY];
+    return opts.isRoot(d, PARENT_KEY);
   }).map(function (d) {
     return Object.assign(Object.create(null), d, _defineProperty({}, CHILDREN_KEY, process(d[KEY])));
   });
