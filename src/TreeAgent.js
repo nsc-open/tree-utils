@@ -86,9 +86,14 @@ class TreeAgent {
     }
   }
 
-  getChildren (key) {
+  getChildren (key, options = { directChildren: false }) {
     if (key) {
-      return Object.values(this.nodeMap).filter(n => n.path.includes(key))
+      if (!options.directChildren) {
+        return Object.values(this.nodeMap).filter(n => n.path.includes(key))
+      } else {
+        const node = this.getNode(key)
+        return node ? node.children : []
+      }
     } else {
       return Object.values(this.nodeMap)
     }
