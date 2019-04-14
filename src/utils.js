@@ -71,3 +71,20 @@ export const buildTree = (
 export const mergeTrees = (trees = [], options) => {
   // TODO
 }
+
+export const sortTree = (
+  tree = [],
+  sorter = () => {},
+  options = { childrenPropName: 'children' }
+) => {
+  const process = nodes => {
+    return nodes.map(node => {
+      const children = node[options.childrenPropName]
+      if (children && children.length > 0) {
+        node[options.childrenPropName] =  process(children)
+      }
+      return node
+    }).sort(sorter)
+  }
+  return process(tree)
+}
