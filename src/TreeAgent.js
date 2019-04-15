@@ -1,4 +1,4 @@
-import { walk } from './utils'
+import { walk, sortTree } from './utils'
 
 class TreeAgent {
 
@@ -177,6 +177,15 @@ class TreeAgent {
 
   every (key, fn) {
     return this.getChildren(key).every(fn)
+  }
+
+  sort (sorter) {
+    this.tree = sortTree(this.tree, sorter)
+    
+    const oldValue = this._preventSync
+    this._preventSync = false
+    this.sync()
+    this._preventSync = oldValue
   }
 
   /**
