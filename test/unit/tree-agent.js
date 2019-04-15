@@ -413,4 +413,77 @@ describe('TreeAgent', function () {
       expect(treeAgent.isChildOf('2-1', '2')).to.be.true
     })
   })
+
+  describe('getFieldValue()', function () {
+    
+
+    it(`getFieldValue('0-1-1-0', 'checked')`, function () {
+      const tree = buildTree([
+        { key: '0', parent: null, name: 'Node 0' },
+        { key: '0-0', parent: '0', name: 'Node 0-0' },
+        { key: '0-1', parent: '0', name: 'Node 0-1' },
+        { key: '0-2', parent: '0', name: 'Node 0-2' },
+        { key: '0-1-0', parent: '0-1', name: 'Node 0-1-0' },
+        { key: '0-1-1', parent: '0-1', name: 'Node 0-1-1' },
+        { key: '0-1-1-0', parent: '0-1-1', name: 'Node 0-1-1-0', checked: true }
+      ])
+      const treeAgent = new TreeAgent(tree)
+      expect(treeAgent.getFieldValue('0-1-1-0', 'checked')).to.be.true
+    })
+    it(`getFieldValue('0-1-1-0', 'checked', { cascade: true })`, function () {
+      const tree = buildTree([
+        { key: '0', parent: null, name: 'Node 0' },
+        { key: '0-0', parent: '0', name: 'Node 0-0' },
+        { key: '0-1', parent: '0', name: 'Node 0-1' },
+        { key: '0-2', parent: '0', name: 'Node 0-2' },
+        { key: '0-1-0', parent: '0-1', name: 'Node 0-1-0' },
+        { key: '0-1-1', parent: '0-1', name: 'Node 0-1-1' },
+        { key: '0-1-1-0', parent: '0-1-1', name: 'Node 0-1-1-0', checked: true }
+      ])
+      const treeAgent = new TreeAgent(tree)
+      expect(treeAgent.getFieldValue('0-1-1-0', 'checked', { cascade: true })).to.be.deep.equal({ value: true, indeterminate: false })
+    })
+
+    it(`getFieldValue('0-1', 'selected')`, function () {
+      const tree = buildTree([
+        { key: '0', parent: null, name: 'Node 0' },
+        { key: '0-0', parent: '0', name: 'Node 0-0' },
+        { key: '0-1', parent: '0', name: 'Node 0-1', selected: false },
+        { key: '0-2', parent: '0', name: 'Node 0-2' },
+        { key: '0-1-0', parent: '0-1', name: 'Node 0-1-0' },
+        { key: '0-1-1', parent: '0-1', name: 'Node 0-1-1' },
+        { key: '0-1-1-0', parent: '0-1-1', name: 'Node 0-1-1-0' }
+      ])
+      const treeAgent = new TreeAgent(tree)
+      expect(treeAgent.getFieldValue('0-1', 'selected')).to.be.false
+    })
+    
+    it(`getFieldValue('0-1', 'selected', { cascade: true })`, function () {
+      const tree = buildTree([
+        { key: '0', parent: null, name: 'Node 0' },
+        { key: '0-0', parent: '0', name: 'Node 0-0' },
+        { key: '0-1', parent: '0', name: 'Node 0-1', selected: false },
+        { key: '0-2', parent: '0', name: 'Node 0-2' },
+        { key: '0-1-0', parent: '0-1', name: 'Node 0-1-0' },
+        { key: '0-1-1', parent: '0-1', name: 'Node 0-1-1' },
+        { key: '0-1-1-0', parent: '0-1-1', name: 'Node 0-1-1-0' }
+      ])
+      const treeAgent = new TreeAgent(tree)
+      expect(treeAgent.getFieldValue('0-1', 'selected', { cascade: true })).to.be.deep.equal({ value: false, indeterminate: true })
+    })
+
+    it(`getFieldValue('0-1', 'selected', { cascade: true })`, function () {
+      const tree = buildTree([
+        { key: '0', parent: null, name: 'Node 0' },
+        { key: '0-0', parent: '0', name: 'Node 0-0' },
+        { key: '0-1', parent: '0', name: 'Node 0-1', selected: false },
+        { key: '0-2', parent: '0', name: 'Node 0-2' },
+        { key: '0-1-0', parent: '0-1', name: 'Node 0-1-0', selected: false },
+        { key: '0-1-1', parent: '0-1', name: 'Node 0-1-1', selected: false },
+        { key: '0-1-1-0', parent: '0-1-1', name: 'Node 0-1-1-0', selected: false }
+      ])
+      const treeAgent = new TreeAgent(tree)
+      expect(treeAgent.getFieldValue('0-1', 'selected', { cascade: true })).to.be.deep.equal({ value: false, indeterminate: false })
+    })
+  })
 })

@@ -6,7 +6,6 @@ class TreeAgent {
     keyPropName: 'key',
     parentPropName: 'parent',
     childrenPropName: 'children'
-    // cascadeFields: []
   }) {    
     this.options = options
     this.tree = tree
@@ -181,7 +180,7 @@ class TreeAgent {
 
   sort (sorter) {
     this.tree = sortTree(this.tree, sorter)
-    
+
     const oldValue = this._preventSync
     this._preventSync = false
     this.sync()
@@ -195,58 +194,60 @@ class TreeAgent {
    * @param {Any} fieldValue 
    * @param {Boolean} cascade
    */
-  /* setFieldValue (key, fieldName, fieldValue, options = { cascade: false, beforeSet: null }) {
+  setFieldValue (
+    key, fieldName, fieldValue,
+    options = {
+      cascade: false,
+      cascadeFilter: node => true // If it returned false, it won't set value. For example, disabled node won't set value: node => node.disabled === false
+    }
+  ) {
+    const { cascade, cascadeFilter } = {
+      cascade: false,
+      cascadeFilter: node => true,
+      ...(options || {})
+    }
     const node = this.getNode(key)
     if (!node) {
       return
     }
 
-    const _setCascadeField = (node, indeterminate) => {
-      node.cascadeFields = node.cascadeFields || {}
-      node.cascadeFields[fieldName] = { value: fieldValue, indeterminate }
-    }
-
     const { _key } = this
-    const { cascade, beforeSet } = options
-
     node.node[fieldName] = fieldValue
     
     if (cascade) {
-      _setCascadeField(node, true)
-
       // set value for children
-      this.getChildren(key).forEach(child => {
-        // ignore if beforeSet returns false
-        if (beforeSet && beforeSet(child) === false) {
-          return
-        }
-
+      this.getChildren(key).filter(cascadeFilter).forEach(child => {
         child.node[fieldName] = fieldValue
-        _setCascadeField(child, true)
       })
 
       // set value for parents
-      this.getParents(key).forEach(parent => {
-        if (beforeSet && beforeSet(parent) === false) {
-          return
-        }
-
+      const parents = this.getParents(key).filter(cascadeFilter)
+      parents.forEach(parent => {
         // forEach parents from bottom to top
         // if all direct children have the same value and non-indeterminate,
         // then set parent as non-indeterminate value
-        this.getParents(key).reverse().forEach(parent => {
+        parents.reverse().forEach(parent => {
           const indeterminate = !parent.children.every(child => {
-            const { value, indeterminate } = this.getFieldValue(_key(child.node), fieldName, true)
+            const { value, indeterminate } = this.getFieldValue(_key(child.node), fieldName, { cascade, cascadeFilter })
             return value === fieldValue && !indeterminate
           })
-
-          _setCascadeField(parent, indeterminate)
         })
       })
     }
   }
 
-  getFieldValue (key, fieldName, cascade = false) {
+  getFieldValue (
+    key, fieldName,
+    options = {
+      cascade: false,
+      cascadeFilter: node => true // For example, exclude node with disabled = true: node => !node.node.disabled === true
+    }
+  ) {
+    const { cascade, cascadeFilter } = {
+      cascade: false,
+      cascadeFilter: node => true,
+      ...(options || {}),
+    }
     const node = this.getNode(key)
     if (!node) {
       return
@@ -257,10 +258,12 @@ class TreeAgent {
     if (!cascade) {
       return value
     } else {
-      node.cascadeFields = node.cascadeFields || {}
-      return node.cascadeFields[fieldName]
+      return {
+        value,
+        indeterminate: !this.getChildren(key).filter(cascadeFilter).every(node => node.node[fieldName] === value)
+      }
     }
-  } */
+  }
 
 
   /* operations need to be done by these provided agent functions */
