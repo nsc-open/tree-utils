@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.mergeTrees = exports.buildTree = exports.walk = void 0;
+exports.sortTree = exports.mergeTrees = exports.buildTree = exports.walk = void 0;
 
 function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
 
@@ -113,3 +113,27 @@ var mergeTrees = function mergeTrees() {// TODO
 };
 
 exports.mergeTrees = mergeTrees;
+
+var sortTree = function sortTree() {
+  var tree = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+  var sorter = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : function () {};
+  var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {
+    childrenPropName: 'children'
+  };
+
+  var process = function process(nodes) {
+    return nodes.map(function (node) {
+      var children = node[options.childrenPropName];
+
+      if (children && children.length > 0) {
+        node[options.childrenPropName] = process(children);
+      }
+
+      return node;
+    }).sort(sorter);
+  };
+
+  return process(tree);
+};
+
+exports.sortTree = sortTree;

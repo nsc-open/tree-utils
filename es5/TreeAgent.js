@@ -15,6 +15,8 @@ function _iterableToArray(iter) { if (Symbol.iterator in Object(iter) || Object.
 
 function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
 
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { if (i % 2) { var source = arguments[i] != null ? arguments[i] : {}; var ownKeys = Object.keys(source); if (typeof Object.getOwnPropertySymbols === 'function') { ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) { return Object.getOwnPropertyDescriptor(source, sym).enumerable; })); } ownKeys.forEach(function (key) { _defineProperty(target, key, source[key]); }); } else { Object.defineProperties(target, Object.getOwnPropertyDescriptors(arguments[i])); } } return target; }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
@@ -23,18 +25,25 @@ function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _d
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
+var defaultOptions = {
+  keyPropName: 'key',
+  parentPropName: 'parent',
+  childrenPropName: 'children',
+  // cascade fields related
+  // cascade field should have value like: { value: '', indeterminate: false }
+  cascadeFields: [],
+  // cascade fields are the fields like `checked`, `selected`, the boolean type fields on the tree
+  cascadeFilter: function cascadeFilter(cascadeFieldName, node) {
+    return true;
+  } // if returns false, it will stop cascade downwards
+
+};
+
 var TreeAgent =
 /*#__PURE__*/
 function () {
-  function TreeAgent(tree) {
+  function TreeAgent(tree, options) {
     var _this = this;
-
-    var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {
-      keyPropName: 'key',
-      parentPropName: 'parent',
-      childrenPropName: 'children' // cascadeFields: []
-
-    };
 
     _classCallCheck(this, TreeAgent);
 
@@ -62,7 +71,7 @@ function () {
       return _this._nodeProp.apply(_this, [node, _this.options.childrenPropName].concat(args));
     });
 
-    this.options = options;
+    this.options = _objectSpread({}, defaultOptions, {}, options || {});
     this.tree = tree;
     this.nodeMap = this._flatten(tree); // { [key]: { node, parent, children, level, path } }
 
@@ -148,10 +157,19 @@ function () {
   }, {
     key: "getChildren",
     value: function getChildren(key) {
+      var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {
+        directChildren: false
+      };
+
       if (key) {
-        return Object.values(this.nodeMap).filter(function (n) {
-          return n.path.includes(key);
-        });
+        if (!options.directChildren) {
+          return Object.values(this.nodeMap).filter(function (n) {
+            return n.path.includes(key);
+          });
+        } else {
+          var node = this.getNode(key);
+          return node ? node.children : [];
+        }
       } else {
         return Object.values(this.nodeMap);
       }
@@ -269,6 +287,15 @@ function () {
     value: function every(key, fn) {
       return this.getChildren(key).every(fn);
     }
+  }, {
+    key: "sort",
+    value: function sort(sorter) {
+      this.tree = (0, _utils.sortTree)(this.tree, sorter);
+      var oldValue = this._preventSync;
+      this._preventSync = false;
+      this.sync();
+      this._preventSync = oldValue;
+    }
     /**
      * 
      * @param {String} key 
@@ -277,62 +304,59 @@ function () {
      * @param {Boolean} cascade
      */
 
-    /* setFieldValue (key, fieldName, fieldValue, options = { cascade: false, beforeSet: null }) {
-      const node = this.getNode(key)
+  }, {
+    key: "setFieldValue",
+    value: function setFieldValue(key, fieldName, fieldValue) {
+      var _this4 = this;
+
+      var node = this.getNode(key);
+
       if (!node) {
-        return
+        return;
       }
-        const _setCascadeField = (node, indeterminate) => {
-        node.cascadeFields = node.cascadeFields || {}
-        node.cascadeFields[fieldName] = { value: fieldValue, indeterminate }
-      }
-        const { _key } = this
-      const { cascade, beforeSet } = options
-        node.node[fieldName] = fieldValue
-      
-      if (cascade) {
-        _setCascadeField(node, true)
-          // set value for children
-        this.getChildren(key).forEach(child => {
-          // ignore if beforeSet returns false
-          if (beforeSet && beforeSet(child) === false) {
-            return
-          }
-            child.node[fieldName] = fieldValue
-          _setCascadeField(child, true)
-        })
-          // set value for parents
-        this.getParents(key).forEach(parent => {
-          if (beforeSet && beforeSet(parent) === false) {
-            return
-          }
-            // forEach parents from bottom to top
-          // if all direct children have the same value and non-indeterminate,
-          // then set parent as non-indeterminate value
-          this.getParents(key).reverse().forEach(parent => {
-            const indeterminate = !parent.children.every(child => {
-              const { value, indeterminate } = this.getFieldValue(_key(child.node), fieldName, true)
-              return value === fieldValue && !indeterminate
-            })
-              _setCascadeField(parent, indeterminate)
-          })
-        })
+
+      var cascadeFields = this.options.cascadeFields;
+
+      var cascadeFilter = function cascadeFilter(node) {
+        return _this4.options.cascadeFilter(fieldName, node);
+      };
+
+      var isCascadeField = cascadeFields.includes(fieldName);
+
+      if (isCascadeField) {
+        node.node[fieldName] = {
+          value: fieldValue,
+          indeterminate: false // set value for children
+
+        };
+        this.getChildren(key).filter(cascadeFilter).forEach(function (child) {
+          child.node[fieldName] = {
+            value: fieldValue,
+            indeterminate: false
+          };
+        }); // set value for parents
+
+        var parents = this.getParents(key).filter(cascadeFilter); // forEach parents from bottom to top
+        // if all direct children have the same value and non-indeterminate,
+        // then set parent as non-indeterminate value
+
+        parents.reverse().forEach(function (parent) {
+          var determinate = parent.children.every(function (child) {
+            var _ref2 = child.node[fieldName] || {},
+                value = _ref2.value,
+                indeterminate = _ref2.indeterminate;
+
+            return value === fieldValue && !indeterminate;
+          });
+          parent.node[fieldName] = {
+            value: fieldValue,
+            indeterminate: !determinate
+          };
+        });
+      } else {
+        node.node[fieldName] = fieldValue;
       }
     }
-      getFieldValue (key, fieldName, cascade = false) {
-      const node = this.getNode(key)
-      if (!node) {
-        return
-      }
-        const value = node.node[fieldName]
-        if (!cascade) {
-        return value
-      } else {
-        node.cascadeFields = node.cascadeFields || {}
-        return node.cascadeFields[fieldName]
-      }
-    } */
-
     /* operations need to be done by these provided agent functions */
 
     /* don't modify tree or node directly, it will leads undetermined result */
@@ -421,7 +445,7 @@ function () {
   }, {
     key: "moveNode",
     value: function moveNode(key, parentKey) {
-      var _this4 = this;
+      var _this5 = this;
 
       if (this.isChildOf(parentKey, key)) {
         console.warn('cannot move a node into its children node');
@@ -444,15 +468,15 @@ function () {
       }
 
       this.syncWrapper(function () {
-        var removedNode = _this4.removeNode(key);
+        var removedNode = _this5.removeNode(key);
 
-        _this4.addNode(parentKey, removedNode.node);
+        _this5.addNode(parentKey, removedNode.node);
       });
     }
   }, {
     key: "addChildren",
     value: function addChildren(parentKey, children) {
-      var _this5 = this;
+      var _this6 = this;
 
       var parent = this.getNode(parentKey);
 
@@ -464,14 +488,14 @@ function () {
       children = Array.isArray(children) ? children : [children];
       this.syncWrapper(function () {
         children.forEach(function (child) {
-          return _this5.addNode(parentKey, child);
+          return _this6.addNode(parentKey, child);
         });
       });
     }
   }, {
     key: "removeChildren",
     value: function removeChildren(parentKey) {
-      var _this6 = this;
+      var _this7 = this;
 
       var parent = this.getNode(parentKey);
 
@@ -489,14 +513,14 @@ function () {
 
       this.syncWrapper(function () {
         _children(parent.node).forEach(function (childNode) {
-          return _this6.removeNode(_key(childNode));
+          return _this7.removeNode(_key(childNode));
         });
       });
     }
   }, {
     key: "setChildren",
     value: function setChildren(parentKey, children) {
-      var _this7 = this;
+      var _this8 = this;
 
       var parent = this.getNode(parentKey);
 
@@ -507,9 +531,9 @@ function () {
 
       children = Array.isArray(children) ? children : [children];
       this.syncWrapper(function () {
-        _this7.removeChildren(parentKey);
+        _this8.removeChildren(parentKey);
 
-        _this7.addChildren(parentKey, children);
+        _this8.addChildren(parentKey, children);
       });
     }
   }]);
