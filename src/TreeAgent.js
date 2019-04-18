@@ -1,15 +1,23 @@
 import { walk, sortTree } from './utils'
 
+const defaultOptions = {
+  keyPropName: 'key',
+  parentPropName: 'parent',
+  childrenPropName: 'children',
+
+  // cascade fields related
+  // cascade field should have value like: { value: '', indeterminate: false }
+  cascadeFields: [],  // cascade fields are the fields like `checked`, `selected`, the boolean type fields on the tree
+  cascadeFilter: (cascadeFieldName, node) => true // if returns false, it will stop cascade downwards
+}
 class TreeAgent {
 
-  constructor (tree, options = {
-    keyPropName: 'key',
-    parentPropName: 'parent',
-    childrenPropName: 'children'
-  }) {    
-    this.options = options
+  constructor (tree, options) {    
+    this.options = {
+      ...defaultOptions,
+      ...(options || {})
+    }
     this.tree = tree
-
     this.nodeMap = this._flatten(tree)  // { [key]: { node, parent, children, level, path } }
     this._preventSync = false
   }
@@ -194,77 +202,41 @@ class TreeAgent {
    * @param {Any} fieldValue 
    * @param {Boolean} cascade
    */
-  setFieldValue (
-    key, fieldName, fieldValue,
-    options = {
-      cascade: false,
-      cascadeFilter: node => true // If it returned false, it won't set value. For example, disabled node won't set value: node => node.disabled === false
-    }
-  ) {
-    const { cascade, cascadeFilter } = {
-      cascade: false,
-      cascadeFilter: node => true,
-      ...(options || {})
-    }
+  setFieldValue (key, fieldName, fieldValue) {
     const node = this.getNode(key)
     if (!node) {
       return
     }
 
-    const { _key } = this
-    node.node[fieldName] = fieldValue
-    
-    if (cascade) {
+    const { cascadeFields } = this.options
+    const cascadeFilter = node => this.options.cascadeFilter(fieldName, node)
+    const isCascadeField = cascadeFields.includes(fieldName)
+
+    if (isCascadeField) {
+      node.node[fieldName] = { value: fieldValue, indeterminate: false }
+
       // set value for children
       this.getChildren(key).filter(cascadeFilter).forEach(child => {
-        child.node[fieldName] = fieldValue
+        child.node[fieldName] = { value: fieldValue, indeterminate: false }
       })
 
       // set value for parents
       const parents = this.getParents(key).filter(cascadeFilter)
-      parents.forEach(parent => {
-        // forEach parents from bottom to top
-        // if all direct children have the same value and non-indeterminate,
-        // then set parent as non-indeterminate value
-        parents.reverse().forEach(parent => {
-          const indeterminate = !parent.children.every(child => {
-            const { value, indeterminate } = this.getFieldValue(_key(child.node), fieldName, { cascade, cascadeFilter })
-            return value === fieldValue && !indeterminate
-          })
+
+      // forEach parents from bottom to top
+      // if all direct children have the same value and non-indeterminate,
+      // then set parent as non-indeterminate value
+      parents.reverse().forEach(parent => {
+        const determinate = parent.children.every(child => {
+          const { value, indeterminate } = child.node[fieldName] || {}
+          return value === fieldValue && !indeterminate
         })
+        parent.node[fieldName] = { value: fieldValue, indeterminate: !determinate }
       })
-    }
-  }
-
-  getFieldValue (
-    key, fieldName,
-    options = {
-      cascade: false,
-      cascadeFilter: node => true // For example, exclude node with disabled = true: node => !node.node.disabled === true
-    }
-  ) {
-    const { cascade, cascadeFilter } = {
-      cascade: false,
-      cascadeFilter: node => true,
-      ...(options || {}),
-    }
-    const node = this.getNode(key)
-    if (!node) {
-      return
-    }
-
-    const value = node.node[fieldName]
-
-    if (!cascade) {
-      return value
     } else {
-      return {
-        value,
-        indeterminate: !this.getChildren(key).filter(cascadeFilter).every(node => node.node[fieldName] === value)
-      }
+      node.node[fieldName] = fieldValue
     }
   }
-
 
   /* operations need to be done by these provided agent functions */
   /* don't modify tree or node directly, it will leads undetermined result */

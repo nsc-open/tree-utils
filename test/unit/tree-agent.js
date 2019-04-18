@@ -414,76 +414,98 @@ describe('TreeAgent', function () {
     })
   })
 
-  describe('getFieldValue()', function () {
-    
+  describe('setFieldValue()', function () {
+    const flatData = [
+      { key: '0', parent: null, name: 'Node 0' },
+      { key: '0-0', parent: '0', name: 'Node 0-0' },
+      { key: '0-1', parent: '0', name: 'Node 0-1' },
+      { key: '0-1-0', parent: '0-1', name: 'Node 0-1-0' },
+      { key: '0-1-1', parent: '0-1', name: 'Node 0-1-1' },
+      { key: '0-1-1-0', parent: '0-1-1', name: 'Node 0-1-1-0' },
+      { key: '0-2', parent: '0', name: 'Node 0-2' },
+    ]
+    const treeAgent = new TreeAgent(buildTree(flatData), { cascadeFields: ['checked'] })
 
-    it(`getFieldValue('0-1-1-0', 'checked')`, function () {
-      const tree = buildTree([
-        { key: '0', parent: null, name: 'Node 0' },
-        { key: '0-0', parent: '0', name: 'Node 0-0' },
-        { key: '0-1', parent: '0', name: 'Node 0-1' },
-        { key: '0-2', parent: '0', name: 'Node 0-2' },
-        { key: '0-1-0', parent: '0-1', name: 'Node 0-1-0' },
-        { key: '0-1-1', parent: '0-1', name: 'Node 0-1-1' },
-        { key: '0-1-1-0', parent: '0-1-1', name: 'Node 0-1-1-0', checked: true }
-      ])
-      const treeAgent = new TreeAgent(tree)
-      expect(treeAgent.getFieldValue('0-1-1-0', 'checked')).to.be.true
-    })
-    it(`getFieldValue('0-1-1-0', 'checked', { cascade: true })`, function () {
-      const tree = buildTree([
-        { key: '0', parent: null, name: 'Node 0' },
-        { key: '0-0', parent: '0', name: 'Node 0-0' },
-        { key: '0-1', parent: '0', name: 'Node 0-1' },
-        { key: '0-2', parent: '0', name: 'Node 0-2' },
-        { key: '0-1-0', parent: '0-1', name: 'Node 0-1-0' },
-        { key: '0-1-1', parent: '0-1', name: 'Node 0-1-1' },
-        { key: '0-1-1-0', parent: '0-1-1', name: 'Node 0-1-1-0', checked: true }
-      ])
-      const treeAgent = new TreeAgent(tree)
-      expect(treeAgent.getFieldValue('0-1-1-0', 'checked', { cascade: true })).to.be.deep.equal({ value: true, indeterminate: false })
+    it(`setFieldValue('0-1', 'name', 'Node 0-1 updated)`, function () {
+      treeAgent.setFieldValue('0-1', 'name', 'Node 0-1 updated')
+      expect(treeAgent.getNode('0-1').node.name).to.be.equal('Node 0-1 updated')
     })
 
-    it(`getFieldValue('0-1', 'selected')`, function () {
-      const tree = buildTree([
-        { key: '0', parent: null, name: 'Node 0' },
-        { key: '0-0', parent: '0', name: 'Node 0-0' },
-        { key: '0-1', parent: '0', name: 'Node 0-1', selected: false },
-        { key: '0-2', parent: '0', name: 'Node 0-2' },
-        { key: '0-1-0', parent: '0-1', name: 'Node 0-1-0' },
-        { key: '0-1-1', parent: '0-1', name: 'Node 0-1-1' },
-        { key: '0-1-1-0', parent: '0-1-1', name: 'Node 0-1-1-0' }
-      ])
-      const treeAgent = new TreeAgent(tree)
-      expect(treeAgent.getFieldValue('0-1', 'selected')).to.be.false
-    })
-    
-    it(`getFieldValue('0-1', 'selected', { cascade: true })`, function () {
-      const tree = buildTree([
-        { key: '0', parent: null, name: 'Node 0' },
-        { key: '0-0', parent: '0', name: 'Node 0-0' },
-        { key: '0-1', parent: '0', name: 'Node 0-1', selected: false },
-        { key: '0-2', parent: '0', name: 'Node 0-2' },
-        { key: '0-1-0', parent: '0-1', name: 'Node 0-1-0' },
-        { key: '0-1-1', parent: '0-1', name: 'Node 0-1-1' },
-        { key: '0-1-1-0', parent: '0-1-1', name: 'Node 0-1-1-0' }
-      ])
-      const treeAgent = new TreeAgent(tree)
-      expect(treeAgent.getFieldValue('0-1', 'selected', { cascade: true })).to.be.deep.equal({ value: false, indeterminate: true })
+    it(`setFieldValue('0-1', 'checked', true)`, function () {
+      treeAgent.setFieldValue('0-1', 'checked', true)
+      expect(treeAgent.getNode('0').node.checked).to.be.deep.equal({ value: true, indeterminate: true })
+      expect(treeAgent.getNode('0-0').node.checked).to.be.undefined
+      expect(treeAgent.getNode('0-1').node.checked).to.be.deep.equal({ value: true, indeterminate: false })
+      expect(treeAgent.getNode('0-1-0').node.checked).to.be.deep.equal({ value: true, indeterminate: false })
+      expect(treeAgent.getNode('0-1-1').node.checked).to.be.deep.equal({ value: true, indeterminate: false })
+      expect(treeAgent.getNode('0-1-1-0').node.checked).to.be.deep.equal({ value: true, indeterminate: false })
+      expect(treeAgent.getNode('0-2').node.checked).to.be.undefined
     })
 
-    it(`getFieldValue('0-1', 'selected', { cascade: true })`, function () {
-      const tree = buildTree([
-        { key: '0', parent: null, name: 'Node 0' },
-        { key: '0-0', parent: '0', name: 'Node 0-0' },
-        { key: '0-1', parent: '0', name: 'Node 0-1', selected: false },
-        { key: '0-2', parent: '0', name: 'Node 0-2' },
-        { key: '0-1-0', parent: '0-1', name: 'Node 0-1-0', selected: false },
-        { key: '0-1-1', parent: '0-1', name: 'Node 0-1-1', selected: false },
-        { key: '0-1-1-0', parent: '0-1-1', name: 'Node 0-1-1-0', selected: false }
-      ])
-      const treeAgent = new TreeAgent(tree)
-      expect(treeAgent.getFieldValue('0-1', 'selected', { cascade: true })).to.be.deep.equal({ value: false, indeterminate: false })
+    it(`setFieldValue('0-1', 'checked', false)`, function () {
+      treeAgent.setFieldValue('0-1', 'checked', false)
+      expect(treeAgent.getNode('0').node.checked).to.be.deep.equal({ value: false, indeterminate: true })
+      expect(treeAgent.getNode('0-0').node.checked).to.be.undefined
+      expect(treeAgent.getNode('0-1').node.checked).to.be.deep.equal({ value: false, indeterminate: false })
+      expect(treeAgent.getNode('0-1-0').node.checked).to.be.deep.equal({ value: false, indeterminate: false })
+      expect(treeAgent.getNode('0-1-1').node.checked).to.be.deep.equal({ value: false, indeterminate: false })
+      expect(treeAgent.getNode('0-1-1-0').node.checked).to.be.deep.equal({ value: false, indeterminate: false })
+      expect(treeAgent.getNode('0-2').node.checked).to.be.undefined
+    })
+
+    it(`setFieldValue('0-1-1', 'checked', true)`, function () {
+      treeAgent.setFieldValue('0-1-1', 'checked', true)
+      expect(treeAgent.getNode('0').node.checked).to.be.deep.equal({ value: true, indeterminate: true })
+      expect(treeAgent.getNode('0-0').node.checked).to.be.undefined
+      expect(treeAgent.getNode('0-1').node.checked).to.be.deep.equal({ value: true, indeterminate: true })
+      expect(treeAgent.getNode('0-1-0').node.checked).to.be.deep.equal({ value: false, indeterminate: false })
+      expect(treeAgent.getNode('0-1-1').node.checked).to.be.deep.equal({ value: true, indeterminate: false })
+      expect(treeAgent.getNode('0-1-1-0').node.checked).to.be.deep.equal({ value: true, indeterminate: false })
+      expect(treeAgent.getNode('0-2').node.checked).to.be.undefined
+    })
+
+    it(`setFieldValue('0-1-0', 'checked', true)`, function () {
+      treeAgent.setFieldValue('0-1-0', 'checked', true)
+      expect(treeAgent.getNode('0').node.checked).to.be.deep.equal({ value: true, indeterminate: true })
+      expect(treeAgent.getNode('0-0').node.checked).to.be.undefined
+      expect(treeAgent.getNode('0-1').node.checked).to.be.deep.equal({ value: true, indeterminate: false })
+      expect(treeAgent.getNode('0-1-0').node.checked).to.be.deep.equal({ value: true, indeterminate: false })
+      expect(treeAgent.getNode('0-1-1').node.checked).to.be.deep.equal({ value: true, indeterminate: false })
+      expect(treeAgent.getNode('0-1-1-0').node.checked).to.be.deep.equal({ value: true, indeterminate: false })
+      expect(treeAgent.getNode('0-2').node.checked).to.be.undefined
+    })
+
+    it(`setFieldValue('0-2', 'checked', true)`, function () {
+      treeAgent.setFieldValue('0-2', 'checked', true)
+      expect(treeAgent.getNode('0').node.checked).to.be.deep.equal({ value: true, indeterminate: true })
+      expect(treeAgent.getNode('0-0').node.checked).to.be.undefined
+      expect(treeAgent.getNode('0-1').node.checked).to.be.deep.equal({ value: true, indeterminate: false })
+      expect(treeAgent.getNode('0-1-0').node.checked).to.be.deep.equal({ value: true, indeterminate: false })
+      expect(treeAgent.getNode('0-1-1').node.checked).to.be.deep.equal({ value: true, indeterminate: false })
+      expect(treeAgent.getNode('0-1-1-0').node.checked).to.be.deep.equal({ value: true, indeterminate: false })
+      expect(treeAgent.getNode('0-2').node.checked).to.be.deep.equal({ value: true, indeterminate: false })
+    })
+
+    it(`setFieldValue('0-0', 'checked', true)`, function () {
+      treeAgent.setFieldValue('0-0', 'checked', true)
+      expect(treeAgent.getNode('0').node.checked).to.be.deep.equal({ value: true, indeterminate: false })
+      expect(treeAgent.getNode('0-0').node.checked).to.be.deep.equal({ value: true, indeterminate: false })
+      expect(treeAgent.getNode('0-1').node.checked).to.be.deep.equal({ value: true, indeterminate: false })
+      expect(treeAgent.getNode('0-1-0').node.checked).to.be.deep.equal({ value: true, indeterminate: false })
+      expect(treeAgent.getNode('0-1-1').node.checked).to.be.deep.equal({ value: true, indeterminate: false })
+      expect(treeAgent.getNode('0-1-1-0').node.checked).to.be.deep.equal({ value: true, indeterminate: false })
+      expect(treeAgent.getNode('0-2').node.checked).to.be.deep.equal({ value: true, indeterminate: false })
+    })
+
+    it(`setFieldValue('0', 'checked', false)`, function () {
+      treeAgent.setFieldValue('0', 'checked', false)
+      expect(treeAgent.getNode('0').node.checked).to.be.deep.equal({ value: false, indeterminate: false })
+      expect(treeAgent.getNode('0-0').node.checked).to.be.deep.equal({ value: false, indeterminate: false })
+      expect(treeAgent.getNode('0-1').node.checked).to.be.deep.equal({ value: false, indeterminate: false })
+      expect(treeAgent.getNode('0-1-0').node.checked).to.be.deep.equal({ value: false, indeterminate: false })
+      expect(treeAgent.getNode('0-1-1').node.checked).to.be.deep.equal({ value: false, indeterminate: false })
+      expect(treeAgent.getNode('0-1-1-0').node.checked).to.be.deep.equal({ value: false, indeterminate: false })
+      expect(treeAgent.getNode('0-2').node.checked).to.be.deep.equal({ value: false, indeterminate: false })
     })
   })
 })
