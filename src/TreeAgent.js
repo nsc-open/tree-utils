@@ -195,6 +195,18 @@ class TreeAgent {
     this._preventSync = oldValue
   }
 
+  map () {
+    // TODO
+  }
+
+  filter () {
+    // TODO
+  }
+
+  find (value) {
+    return this.getNode(value)
+  }
+
   /**
    * 
    * @param {String} key 
