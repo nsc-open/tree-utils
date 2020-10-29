@@ -218,6 +218,12 @@ describe('TreeAgent', function () {
     })
   })
 
+  describle('filter()', function () {
+    it('should work', function() {
+      // TODO
+    })
+  })
+
   describe('addNode()', function () {
     const treeAgent = new TreeAgent([])
     it('add node for an empty tree', function () {

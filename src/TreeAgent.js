@@ -1,4 +1,4 @@
-import { walk, sortTree } from './utils'
+import { walk, sortTree, buildTree } from './utils'
 
 const defaultOptions = {
   keyPropName: 'key',
@@ -199,8 +199,26 @@ class TreeAgent {
     // TODO
   }
 
-  filter () {
-    // TODO
+  /**
+   * return a filtered tree
+   * @param {Function} fn 
+   * @param {Object} options 
+   */
+  filter (fn, options) {
+    const { keepParent } = {
+      keepParent: false,
+      ...(options || {})
+    }
+
+    const nodes = this.getChildren().filter(fn)
+    if (true || !keepParent) {
+      // if no need to keepParent, then build tree with filtered nodes
+      return buildTree(nodes, this.options)
+    } else {
+      // if need to keepParent, then need add parents back to nodes, then build tree
+      return [] // TODO
+    }
+
   }
 
   find (value) {
