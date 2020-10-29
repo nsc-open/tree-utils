@@ -205,20 +205,15 @@ class TreeAgent {
    * @param {Object} options 
    */
   filter (fn, options) {
-    const { keepParent } = {
-      keepParent: false,
-      ...(options || {})
-    }
-
     const nodes = this.getChildren().filter(fn)
-    if (true || !keepParent) {
-      // if no need to keepParent, then build tree with filtered nodes
-      return buildTree(nodes.map(n => n.node), this.options)
-    } else {
-      // if need to keepParent, then need add parents back to nodes, then build tree
-      return [] // TODO
-    }
-
+    const flatData = nodes.map(n => {
+      return {
+        ...n.node,
+        [this.options.parentPropName]: n.parent ? n.parent.node[this.options.keyPropName] : null,
+        [this.options.childrenPropName]: null
+      }
+    })
+    return buildTree(flatData, this.options)
   }
 
   find (value) {

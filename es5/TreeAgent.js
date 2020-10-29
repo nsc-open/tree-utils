@@ -313,22 +313,15 @@ var TreeAgent = /*#__PURE__*/function () {
   }, {
     key: "filter",
     value: function filter(fn, options) {
-      var _keepParent = _objectSpread({
-        keepParent: false
-      }, options || {}),
-          keepParent = _keepParent.keepParent;
+      var _this4 = this;
 
       var nodes = this.getChildren().filter(fn);
+      var flatData = nodes.map(function (n) {
+        var _objectSpread2;
 
-      if (true || !keepParent) {
-        // if no need to keepParent, then build tree with filtered nodes
-        return (0, _utils.buildTree)(nodes.map(function (n) {
-          return n.node;
-        }), this.options);
-      } else {
-        // if need to keepParent, then need add parents back to nodes, then build tree
-        return []; // TODO
-      }
+        return _objectSpread(_objectSpread({}, n.node), {}, (_objectSpread2 = {}, _defineProperty(_objectSpread2, _this4.options.parentPropName, n.parent ? n.parent.node[_this4.options.keyPropName] : null), _defineProperty(_objectSpread2, _this4.options.childrenPropName, null), _objectSpread2));
+      });
+      return (0, _utils.buildTree)(flatData, this.options);
     }
   }, {
     key: "find",
@@ -346,7 +339,7 @@ var TreeAgent = /*#__PURE__*/function () {
   }, {
     key: "setFieldValue",
     value: function setFieldValue(key, fieldName, fieldValue) {
-      var _this4 = this;
+      var _this5 = this;
 
       var node = this.getNode(key);
 
@@ -357,7 +350,7 @@ var TreeAgent = /*#__PURE__*/function () {
       var cascadeFields = this.options.cascadeFields;
 
       var cascadeFilter = function cascadeFilter(node) {
-        return _this4.options.cascadeFilter(fieldName, node);
+        return _this5.options.cascadeFilter(fieldName, node);
       };
 
       var isCascadeField = cascadeFields.includes(fieldName);
@@ -484,7 +477,7 @@ var TreeAgent = /*#__PURE__*/function () {
   }, {
     key: "moveNode",
     value: function moveNode(key, parentKey) {
-      var _this5 = this;
+      var _this6 = this;
 
       if (this.isChildOf(parentKey, key)) {
         console.warn('cannot move a node into its children node');
@@ -507,15 +500,15 @@ var TreeAgent = /*#__PURE__*/function () {
       }
 
       this.syncWrapper(function () {
-        var removedNode = _this5.removeNode(key);
+        var removedNode = _this6.removeNode(key);
 
-        _this5.addNode(parentKey, removedNode.node);
+        _this6.addNode(parentKey, removedNode.node);
       });
     }
   }, {
     key: "addChildren",
     value: function addChildren(parentKey, children) {
-      var _this6 = this;
+      var _this7 = this;
 
       var parent = this.getNode(parentKey);
 
@@ -527,14 +520,14 @@ var TreeAgent = /*#__PURE__*/function () {
       children = Array.isArray(children) ? children : [children];
       this.syncWrapper(function () {
         children.forEach(function (child) {
-          return _this6.addNode(parentKey, child);
+          return _this7.addNode(parentKey, child);
         });
       });
     }
   }, {
     key: "removeChildren",
     value: function removeChildren(parentKey) {
-      var _this7 = this;
+      var _this8 = this;
 
       var parent = this.getNode(parentKey);
 
@@ -552,14 +545,14 @@ var TreeAgent = /*#__PURE__*/function () {
 
       this.syncWrapper(function () {
         _children(parent.node).forEach(function (childNode) {
-          return _this7.removeNode(_key(childNode));
+          return _this8.removeNode(_key(childNode));
         });
       });
     }
   }, {
     key: "setChildren",
     value: function setChildren(parentKey, children) {
-      var _this8 = this;
+      var _this9 = this;
 
       var parent = this.getNode(parentKey);
 
@@ -570,9 +563,9 @@ var TreeAgent = /*#__PURE__*/function () {
 
       children = Array.isArray(children) ? children : [children];
       this.syncWrapper(function () {
-        _this8.removeChildren(parentKey);
+        _this9.removeChildren(parentKey);
 
-        _this8.addChildren(parentKey, children);
+        _this9.addChildren(parentKey, children);
       });
     }
   }]);
