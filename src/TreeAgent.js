@@ -213,7 +213,7 @@ class TreeAgent {
     const nodes = this.getChildren().filter(fn)
     if (true || !keepParent) {
       // if no need to keepParent, then build tree with filtered nodes
-      return buildTree(nodes, this.options)
+      return buildTree(nodes.map(n => n.node), this.options)
     } else {
       // if need to keepParent, then need add parents back to nodes, then build tree
       return [] // TODO

@@ -322,7 +322,9 @@ var TreeAgent = /*#__PURE__*/function () {
 
       if (true || !keepParent) {
         // if no need to keepParent, then build tree with filtered nodes
-        return (0, _utils.buildTree)(nodes, this.options);
+        return (0, _utils.buildTree)(nodes.map(function (n) {
+          return n.node;
+        }), this.options);
       } else {
         // if need to keepParent, then need add parents back to nodes, then build tree
         return []; // TODO
