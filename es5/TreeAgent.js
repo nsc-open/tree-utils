@@ -3,19 +3,25 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.default = void 0;
+exports["default"] = void 0;
 
 var _utils = require("./utils");
 
-function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
+function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread(); }
 
-function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance"); }
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
 
-function _iterableToArray(iter) { if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter); }
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
 
-function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
+function _iterableToArray(iter) { if (typeof Symbol !== "undefined" && Symbol.iterator in Object(iter)) return Array.from(iter); }
 
-function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { if (i % 2) { var source = arguments[i] != null ? arguments[i] : {}; var ownKeys = Object.keys(source); if (typeof Object.getOwnPropertySymbols === 'function') { ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) { return Object.getOwnPropertyDescriptor(source, sym).enumerable; })); } ownKeys.forEach(function (key) { _defineProperty(target, key, source[key]); }); } else { Object.defineProperties(target, Object.getOwnPropertyDescriptors(arguments[i])); } } return target; }
+function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) return _arrayLikeToArray(arr); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -39,9 +45,7 @@ var defaultOptions = {
 
 };
 
-var TreeAgent =
-/*#__PURE__*/
-function () {
+var TreeAgent = /*#__PURE__*/function () {
   function TreeAgent(tree, options) {
     var _this = this;
 
@@ -71,7 +75,7 @@ function () {
       return _this._nodeProp.apply(_this, [node, _this.options.childrenPropName].concat(args));
     });
 
-    this.options = _objectSpread({}, defaultOptions, {}, options || {});
+    this.options = _objectSpread(_objectSpread({}, defaultOptions), options || {});
     this.tree = tree;
     this.nodeMap = this._flatten(tree); // { [key]: { node, parent, children, level, path } }
 
@@ -212,8 +216,8 @@ function () {
 
   }, {
     key: "getLeaves",
-    value: function getLeaves(key) {} // TODO
-
+    value: function getLeaves(key) {// TODO
+    }
     /**
      * return level of whole tree or give tree node
      * @param {String} key optional
@@ -296,6 +300,39 @@ function () {
       this.sync();
       this._preventSync = oldValue;
     }
+  }, {
+    key: "map",
+    value: function map() {// TODO
+    }
+    /**
+     * return a filtered tree
+     * @param {Function} fn 
+     * @param {Object} options 
+     */
+
+  }, {
+    key: "filter",
+    value: function filter(fn, options) {
+      var _keepParent = _objectSpread({
+        keepParent: false
+      }, options || {}),
+          keepParent = _keepParent.keepParent;
+
+      var nodes = this.getChildren().filter(fn);
+
+      if (true || !keepParent) {
+        // if no need to keepParent, then build tree with filtered nodes
+        return (0, _utils.buildTree)(nodes, this.options);
+      } else {
+        // if need to keepParent, then need add parents back to nodes, then build tree
+        return []; // TODO
+      }
+    }
+  }, {
+    key: "find",
+    value: function find(value) {
+      return this.getNode(value);
+    }
     /**
      * 
      * @param {String} key 
@@ -326,9 +363,9 @@ function () {
       if (isCascadeField) {
         node.node[fieldName] = {
           value: fieldValue,
-          indeterminate: false // set value for children
+          indeterminate: false
+        }; // set value for children
 
-        };
         this.getChildren(key).filter(cascadeFilter).forEach(function (child) {
           child.node[fieldName] = {
             value: fieldValue,
@@ -542,4 +579,4 @@ function () {
 }();
 
 var _default = TreeAgent;
-exports.default = _default;
+exports["default"] = _default;

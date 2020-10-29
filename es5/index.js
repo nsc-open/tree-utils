@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", {
 Object.defineProperty(exports, "TreeAgent", {
   enumerable: true,
   get: function get() {
-    return _TreeAgent.default;
+    return _TreeAgent["default"];
   }
 });
 Object.defineProperty(exports, "walk", {
@@ -26,4 +26,4 @@ var _TreeAgent = _interopRequireDefault(require("./TreeAgent"));
 
 var _utils = require("./utils");
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
