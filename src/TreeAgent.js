@@ -129,7 +129,7 @@ class TreeAgent {
    * @param {String} key optional
    */
   getLeaves (key) {
-    // TODO
+    return this.getChildren(key).filter(n => !n.children || n.children.length === 0)
   }
 
   /**

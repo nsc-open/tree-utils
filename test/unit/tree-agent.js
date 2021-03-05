@@ -111,6 +111,32 @@ describe('TreeAgent', function () {
     })
   })
 
+  describe('getLeaves()', function () {
+    it('should return leaves of whole tree', function () {
+      const leaves = treeAgent.getLeaves()
+      const keys = leaves.map(n => n.node.key)
+      expect(keys).to.include('0-2')
+      expect(keys).to.include('0-1-0')
+      expect(keys).to.include('0-1-1-0')
+      expect(keys).to.include('1-0')
+      expect(keys).to.include('1-1-0')
+      expect(keys).to.include('1-1-1')
+      expect(keys).to.include('1-1-2')
+      expect(keys).to.include('2')
+      expect(keys).to.not.include('0-1')
+      expect(keys).to.not.include('1-1')
+    })
+    it('should return leaves of given node', function () {
+      const leaves = treeAgent.getLeaves('1-1')
+      const keys = leaves.map(n => n.node.key)
+      expect(keys).to.include('1-1-0')
+      expect(keys).to.include('1-1-1')
+      expect(keys).to.include('1-1-2')
+      expect(keys).to.not.include('0-1-1')
+      expect(keys).to.not.include('1-1')
+    })
+  })
+
   describe('getLevel()', function () {
     it('should return null for wrong key', function () {
       expect(treeAgent.getLevel('wrong-key')).to.be.null
@@ -218,7 +244,7 @@ describe('TreeAgent', function () {
     })
   })
 
-  describle('filter()', function () {
+  describe('filter()', function () {
     it('should work', function() {
       // TODO
     })

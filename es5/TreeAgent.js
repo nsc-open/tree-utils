@@ -216,7 +216,10 @@ var TreeAgent = /*#__PURE__*/function () {
 
   }, {
     key: "getLeaves",
-    value: function getLeaves(key) {// TODO
+    value: function getLeaves(key) {
+      return this.getChildren(key).filter(function (n) {
+        return !n.children || n.children.length === 0;
+      });
     }
     /**
      * return level of whole tree or give tree node
